@@ -15,28 +15,33 @@ nchnls = 4
 #define MINSPEED #1#
 #define MAXSPEED #2#
 
+#define MAXCLIENTS #20#
+
 ;CONSTANTS: -----------------------
 giHandle OSCinit 9000 ; osc messages about level of harmonics
 
-giSine =  -1
-giSine1 ftgen 101, 0, 16384, 10, 1, 0,0,0,0,0.1
-giSine2 ftgen 102, 0, 16384, 10, 1, 0,0, 0.1
-giSine3 ftgen 103, 0, 16384, 10, 1, 0, 0.1
-giSine4 ftgen 104, 0, 16384, 10, 1, 0.1,0.05
+giSine ftgen 101, 0, 16384, 10, 1
+giSine1 ftgen 102, 0, 16384, 10, 1, 0.1
+giSine2 ftgen 103, 0, 16384, 10, 1, 0.1, 0.02
+giSine3 ftgen 104, 0, 16384, 10, 1, 0.1, 0.04, 0.001
+giSine4 ftgen 105, 0, 16384, 10, 1, 0.1, 0.06, 0.002,0.001
+giSine5 ftgen 106, 0, 16384, 10, 1, 0.1, 0.08, 0.003,0.002, 0.001
 
 
 ;giSine2 ftgen 0, 0, 65536, 10, 1, 0.6,0.4,0.3,0.2,0.1,0.05,0.002
 
-gkFn init giSine2;-1
+;gkFn init giSine
+
 gkLevel init 1
 
-giBaseFreq=cpspch(6.02)
+giBaseFreq=cpspch(6.03)
 ;giRotationSpeed[] fillarray 1, 1.25,  1.5, 1.75, 2, 2.1, 2.2, 2.3
 
 gkCircleTime init 15
 chnset 15,"circletime"
 
-giHarmCount init 16;20
+giHarmCount init $MAXCLIENTS;20
+print giHarmCount
 gkAmplitude[] init giHarmCount+1
 gaAtack[] init giHarmCount+1
 gkFreq[] genarray_i giBaseFreq, giBaseFreq*giHarmCount, giBaseFreq
@@ -47,6 +52,8 @@ gkFreq[] genarray_i giBaseFreq, giBaseFreq*giHarmCount, giBaseFreq
 
 chn_k "circletime", 3
 chn_k "time",2
+chn_k "fn",3
+chnset giSine,"fn"
 
 giharm = 1
 channels:
@@ -207,27 +214,48 @@ instr control ; 15 min?
 	; kiirus aeglustub
 	; faasid 1 && 2
 	istart = 15
-	ifast = 4
+	ifast = 3
 	ifastest = 2
 	islowest = 20
 	islidestart = p3*0.5
 	gkCircleTime expseg istart, p3/8, istart, p3/16, ifast+2, p3/16, istart,
 	p3/4, istart, p3/4,ifastest, p3/16,ifastest,p3/8,islowest, p3/16, islowest
 	chnset gkCircleTime, "circletime"
+	ktime timeinsts
 	ktrig metro 1 ; take time every second
-	if ktrig==1 then
-		ktime timeinsts	
+	if ktrig==1 then		
 		chnset int(ktime),"time" 
 	endif
 	schedule "slide_start",islidestart,p3/4,4/3
-	schedule "fade", p3+10,0,30,0 ; 10 sec after end of cotrol fade out int 30 seconds
-	 
+	schedule "fade", p3+10,30,0 ; 10 sec after end of cotrol fade out int 30 seconds
+	
+	; changes in wave table
+	schedule "setGkFn",p3/6,0.1, giSine1
+	schedule "setGkFn",p3/4,0.1, giSine2
+	schedule "setGkFn",p3/2,0.1, giSine3
+	schedule "setGkFn",p3*0.75,0.1, giSine5
+	schedule "setGkFn",p3*0.825,0.1, giSine2
+	schedule "setGkFn",p3*0.9,0.1, giSine1
+	
+	
+;	if (ktime==p3/8) then
+;		gkFn = giSine1
+;	elseif (ktime== p3/4) then
+;		gkFn = giSine2
+;	elseif (ktime== p3/2) then
+;		gkFn = giSine3		
+;	elseif (ktime== p3*0.75) then
+;		gkFn = giSine4
+;	endif 
+;	printk2 gkFn 
 endin
 
-; schedule "setGkFn",0,0.1,giSine
+;schedule "setGkFn",0,0.1, 104
 instr setGkFn
-	print p4
-	gkFn = p4
+	;print p4
+	kfn init p4
+	chnset p4,"fn"
+	turnoff
 endin
 
 ; SOUND: -----------------------------------------
@@ -280,11 +308,15 @@ endin
 #define OUT #0#
 #define IN #1#
 
-; schedule "fade",0,5,1
+; schedule "fade",0,5,0
 instr fade ; p4: 0 - out 1 - in
+	
 	istart = (p4==$OUT) ? 1 : 0.0001
 	iend = (p4==$OUT) ? 0.0001 : 1
+	gkLevel init istart
 	gkLevel line istart,p3,iend
+	;gkLevel port iend,p3/2
+	
 endin
 
 instr note
@@ -302,7 +334,8 @@ instr note
 	;ifn =  (iharmonic == 1) ? giSine2 : giSine; -1
 	aenv linen 1,0.2,p3,0.2
 	kamp port gkAmplitude[iharmonic-1],0.05
-	asig oscilikt kamp*aenv*iamp*(gaAtack[iharmonic-1]+1)*gkLevel,gkFreq[iharmonic-1], gkFn;ifn
+	kfn chnget "fn"
+	asig oscilikt kamp*aenv*iamp*(gaAtack[iharmonic-1]+1)*gkLevel,gkFreq[iharmonic-1], kfn; gkFn;ifn
 	gaAtack[iharmonic-1] = 0
 	a1, a2, a3, a4 vbap4 asig, kdegree 
 	;a1, a2,a3,a4 locsig asig, kdegree, 1, 0
