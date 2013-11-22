@@ -6,7 +6,7 @@
 
 sr = 44100
 ksmps = 32
-nchnls = 2;4
+nchnls = 4
 0dbfs = 1
 
 #define MAXAMP #0.5#
@@ -33,7 +33,7 @@ giBaseFreq=cpspch(6.02)
 gkCircleTime init 15
 chnset 15,"circletime"
 
-giHarmCount init 20;20
+giHarmCount init 30;20
 gkAmplitude[] init giHarmCount
 gaAtack[] init giHarmCount
 gkFreq[] genarray_i giBaseFreq, giBaseFreq*giHarmCount, giBaseFreq
@@ -51,8 +51,8 @@ channels:
 	chn_k Schn,3
 	loop_le giharm, 1, giHarmCount, channels
 
-;vbaplsinit 2, 4, -45, 45, 135, -135
-vbaplsinit 2, 2, -45, 45
+vbaplsinit 2, 4, -45, 45, 135, -135
+;vbaplsinit 2, 2, -45, 45
 
 ; TEST: --------------
 seed 0
@@ -167,7 +167,7 @@ else:
 
 	    ;schedkwhen knew,0,0, nstrnum("sound")+kharmonic/100,0,-1,kharmonic
 	         
-		Sin sprintfk "i \"sendHarmonic\" 0 0.1 %d \"%s\" %d",kport,SClientIP, kharmonic
+		Sin sprintfk "i \"sendHarmonic\" 0.1 0.1 %d \"%s\" %d",kport,SClientIP, kharmonic
 		puts Sin, kharmonic
 		scoreline Sin, khello
 		
@@ -191,7 +191,6 @@ instr sendHarmonic
 	iport = p4
 	Shost strget p5
 	iharmonic = p6
-	prints Shost
 	OSCsend 1, Shost, iport,"/harmonics/number", "i", iharmonic
 	turnoff
 endin
@@ -216,7 +215,6 @@ instr control ; 15 min?
 	if ktrig==1 then
 		ktime timeinsts	
 		chnset int(ktime),"time" 
-		printk2 ktime
 	endif
 	schedule "slide_start",islidestart,p3/4,4/3
 	 
@@ -275,9 +273,9 @@ endin
 
 ; schedule "fade",0,5,1
 instr fade ; p4: 0 - out 1 - in
-	istart = (p4==$OUT) ? 1 : 0
-	iend = (p4==$OUT) ? 0 : 1
-	gkLevel line istart,p3,iend
+	istart = (p4==$OUT) ? 1 : 0.0001
+	iend = (p4==$OUT) ? 0.0001 : 1
+	gkLevel expon istart,p3,iend
 endin
 
 instr note
@@ -299,15 +297,17 @@ instr note
 	gaAtack[iharmonic-1] = 0
 	a1, a2, a3, a4 vbap4 asig, kdegree 
 	;a1, a2,a3,a4 locsig asig, kdegree, 1, 0
-	a1,a2 vbap asig, kdegree  
+	;a1,a2 vbap asig, kdegree  
 	;outs a1,a2
-	;outq a1,a2,a3,a4
+	outq a1,a2,a3,a4
 	
 endin
 
 
 </CsInstruments>
 <CsScore>
+i "sendHarmonic" 0 0.1 9114 "192.168.11.14" 1
+
 </CsScore>
 </CsoundSynthesizer>
 
@@ -1146,7 +1146,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.20137036</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1208,7 +1208,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.19776587</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1270,7 +1270,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.52617180</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1332,7 +1332,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.34792483</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1394,7 +1394,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.44566232</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1456,7 +1456,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.30914894</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1518,7 +1518,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.22139429</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1580,7 +1580,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.86318868</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1642,7 +1642,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.20655882</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1704,7 +1704,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.41879064</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1766,7 +1766,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.37588930</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1828,7 +1828,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.75329572</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1890,7 +1890,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.63007873</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1952,7 +1952,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.46685666</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2014,7 +2014,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.51039886</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2076,7 +2076,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.13801438</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2138,7 +2138,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.25049898</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2200,7 +2200,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.78028488</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2262,7 +2262,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.80152589</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2324,7 +2324,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.84951866</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
