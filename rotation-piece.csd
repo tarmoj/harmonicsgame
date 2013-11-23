@@ -141,6 +141,8 @@ endin
 
 
 ; OSC: ---------------------------------------------
+gSClientIP = ""
+
 alwayson "osc"
 pyinit
 pyruni {{
@@ -152,7 +154,7 @@ clientsCount = 0
 instr osc
 	SClientIP = ""
 	kID init 0
-	khello OSClisten giHandle, "/harmonics/hello","si",SClientIP,kID ; id - viimane osa IP aadressist. Antud arvuna, et ei peaks enam eraldi eraldama
+	khello OSClisten giHandle, "/harmonics/hello","si",gSClientIP,kID ; id - viimane osa IP aadressist. Antud arvuna, et ei peaks enam eraldi eraldama
 	if (khello==1) then 
 	   ; salvesta ID, uuri, kas see on juba olemas, kui ei, lisa massiivi
 	  	; saada ip vatava harm. numbriga
@@ -177,7 +179,8 @@ else:
 
 	    ;schedkwhen knew,0,0, nstrnum("sound")+kharmonic/100,0,-1,kharmonic
 	         
-		Sin sprintfk "i \"sendHarmonic\" 0.1 0.1 %d \"%s\" %d",kport,SClientIP, kharmonic
+		Sin sprintfk "i \"sendHarmonic\" 0 0.1 %d \"%s\" %d",kport,SClientIP, kharmonic
+		strset 1001, SClientIP
 		puts Sin, kharmonic
 		scoreline Sin, khello
 		
@@ -198,9 +201,12 @@ endin
 
 
 instr sendHarmonic
+	
 	iport = p4
-	Shost strget p5
+	Shost =gSClientIP;strget 1001;p5
+	prints Shost
 	iharmonic = p6
+	print iport,iharmonic
 	OSCsend 1, Shost, iport,"/harmonics/number", "i", iharmonic
 	turnoff
 endin
@@ -2242,7 +2248,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.78028488</yValue>
+  <yValue>0.00000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2304,7 +2310,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.80152589</yValue>
+  <yValue>0.00000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2366,7 +2372,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.84951866</yValue>
+  <yValue>0.00000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
