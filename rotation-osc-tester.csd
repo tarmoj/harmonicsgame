@@ -25,7 +25,8 @@ label:
 
 instr tester
 	iharm = p4
-	kamp = 0.5+jspline(0.4,0.2,1)
+	OSCsend 1, $HOST,9000,"/harmonics/hello","si","localhost",100+iharm
+	kamp = 0.4+jspline(0.3,0.2,1)
 	ktrig metro 20 ; 50  korda sekundis
 	OSCsend ktrig, $HOST, 9000, "/harmonics/harmonic", "if", iharm, kamp
 	kout trigger kamp, 0.6,2
