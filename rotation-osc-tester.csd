@@ -9,6 +9,11 @@ ksmps = 1024
 nchnls = 2
 0dbfs = 1
 
+#define OSC #0#
+#define WS #1#
+
+gimode = $WS
+
 #define HOST #"localhost"# ;  hiljem: "192.168.11.199"
 ;instr fromWidget
 ;	kamp chnget "amp"
@@ -22,21 +27,55 @@ label:
 	schedule "tester", 0,3600,index
 	loop_le index, 1, 20, label
 
+; for websocket-connection
+
+
+pyinit
+pyruni {{
+from websocket import create_connection # you need websocket-client module installed
+ws = create_connection("ws://localhost:7007")
+ws.send("csound: hello")
+print "Websocket created"
+
+def sendMessage(harmonic, value): # if value 999, then atack
+	if (value==999):
+		command = "attack " + str(int(harmonic))
+		print command
+	else:
+		command = "harmonic %d %f" % (harmonic, value) 
+		
+	#print command
+	ws.send(command) 
+	
+
+}}
+
 
 instr tester
 	iharm = p4
-	OSCsend 1, $HOST,9000,"/harmonics/hello","si","localhost",100+iharm
 	kamp = 0.4+jspline(0.3,0.2,1)
+	if (gimode == $OSC) then
+		OSCsend 1, $HOST,9000,"/harmonics/hello","si","localhost",100+iharm
+	endif
+	
 	ktrig metro 20 ; 50  korda sekundis
-	OSCsend ktrig, $HOST, 9000, "/harmonics/harmonic", "if", iharm, kamp
+	if (gimode == $OSC) then
+		OSCsend ktrig, $HOST, 9000, "/harmonics/harmonic", "if", iharm, kamp
+	elseif (gimode == $WS) then
+		pycall "sendMessage", iharm, kamp
+	endif
 	kout trigger kamp, 0.6,2
 	schedkwhen kout, 0, 0, "sendAtack", 0, 0.1, iharm	
 endin
 
-; schedule "sendAtack",0,0.1,1
+; schedule "sendAtack",0,0.1,7
 instr sendAtack
 	iharm = p4
-	OSCsend 1, $HOST, 9000, "/harmonics/atack", "if", iharm, 0
+	if (gimode == $OSC) then
+		OSCsend 1, $HOST, 9000, "/harmonics/atack", "if", iharm, 0
+	elseif (gimode == $WS) then
+		pycalli "sendMessage", iharm, 999
+	endif
 endin
 
 

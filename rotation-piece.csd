@@ -7,7 +7,7 @@
 
 sr = 44100
 ksmps = 32
-nchnls = 2; 4
+nchnls = 4
 0dbfs = 1
 
 #define MAXAMP #0.5#
@@ -19,7 +19,7 @@ nchnls = 2; 4
 #define MAXCLIENTS #20#
 
 ;CONSTANTS: -----------------------
-giHandle OSCinit 9000 ; osc messages about level of harmonics
+giHandle init 0;OSCinit 9000 ; osc messages about level of harmonics
 
 giSine ftgen 101, 0, 16384, 10, 1
 giSine1 ftgen 102, 0, 16384, 10, 1, 0.1
@@ -28,12 +28,11 @@ giSine3 ftgen 104, 0, 16384, 10, 1, 0.1, 0.04, 0.001
 giSine4 ftgen 105, 0, 16384, 10, 1, 0.1, 0.06, 0.002,0.001
 giSine5 ftgen 106, 0, 16384, 10, 1, 0.1, 0.08, 0.003,0.002, 0.001
 
+giMixTable  ftgen 101, 0, 16384, 10, 1 ; same ase giSine for beginning
 
-;giSine2 ftgen 0, 0, 65536, 10, 1, 0.6,0.4,0.3,0.2,0.1,0.05,0.002
+;
 
-;gkFn init giSine
-
-gkLevel init 1
+gkFade init 1
 
 giBaseFreq=cpspch(6.03)
 ;giRotationSpeed[] fillarray 1, 1.25,  1.5, 1.75, 2, 2.1, 2.2, 2.3
@@ -54,7 +53,9 @@ gkFreq[] genarray_i giBaseFreq, giBaseFreq*giHarmCount, giBaseFreq
 chn_k "circletime", 3
 chn_k "time",2
 chn_k "fn",3
+chn_k "level", 1
 chnset giSine,"fn"
+chnset 0.8, "level"
 
 giharm = 1
 channels:
@@ -146,7 +147,7 @@ endin
 ; OSC: ---------------------------------------------
 gSClientIP = ""
 
-alwayson "osc"
+;alwayson "osc"
 pyinit
 pyruni {{
 ids = [] #  ;id-s (last parts of IP addresses of client
@@ -230,7 +231,7 @@ instr control ; 15 min?
 	ifastest = 2
 	islowest = 20
 	islidestart = p3*0.55
-	gkCircleTime expseg istart, p3/8, istart, p3/16, ifast+2, p3/16, istart,
+	gkCircleTime expseg istart, p3/8, istart, p3/16, ifast+1, p3/16, istart,
 	p3/4, istart, p3/4,ifastest, p3/16,ifastest,p3/8,islowest, p3/16, islowest
 	chnset gkCircleTime, "circletime"
 	ktime timeinsts
@@ -242,37 +243,28 @@ instr control ; 15 min?
 	schedule "fade", p3+10,30,0 ; 10 sec after end of cotrol fade out int 30 seconds
 	
 	; changes in wave table
-	schedule "setGkFn",p3*3/16,0.1, giSine1
-	schedule "setGkFn",p3/4,0.1, giSine2
-	schedule "setGkFn",p3/2,0.1, giSine3
-	schedule "setGkFn",p3*0.75,0.1, giSine5
-	schedule "setGkFn",p3*0.825,0.1, giSine2
-	schedule "setGkFn",p3*0.9,0.1, giSine1
+	imixtime = 3
+	schedule "mixTable",p3*3/16,imixtime, giSine, giSine1
+	schedule "mixTable",p3/4,imixtime, giSine1, giSine2
+	schedule "mixTable",p3/2,imixtime, giSine2, giSine3
+	schedule "mixTable",p3*0.75,imixtime, giSine3, giSine5
+	schedule "mixTable",p3*0.825,imixtime, giSine5, giSine2
+	schedule "mixTable",p3*0.9,imixtime, giSine2, giSine ; was giSine1
 	
-	
-;	if (ktime==p3/8) then
-;		gkFn = giSine1
-;	elseif (ktime== p3/4) then
-;		gkFn = giSine2
-;	elseif (ktime== p3/2) then
-;		gkFn = giSine3		
-;	elseif (ktime== p3*0.75) then
-;		gkFn = giSine4
-;	endif 
-;	printk2 gkFn 
+
 endin
 
-;schedule "setGkFn",0,0.1, 104
-instr setGkFn
-	;print p4
-	kfn init p4
-	chnset p4,"fn"
-	turnoff
+;schedule "mixTable",0,0.1, 104
+instr mixTable
+	itable1 = p4
+	itable2 = p5
+	kgain line 0,p3,1
+	tablemix giMixTable, 0, ftlen(itable1), itable1, 0, 1-kgain, itable2, 0, kgain
 endin
 
 ; SOUND: -----------------------------------------
 
-schedule "rotate",0,3600
+schedule "rotate",0,9600
 instr rotate
 	iharm = 1
 looppoint:
@@ -281,6 +273,9 @@ looppoint:
     loop_le	iharm,1,giHarmCount,looppoint
     
     gkCircleTime chnget "circletime"
+    gkLevel chnget "level"
+    gkLevel port gkLevel, 0.05
+    ; TODO: gkLevel chnget "level", gkFade
 endin
 
 
@@ -325,21 +320,21 @@ endin
 #define OUT #0#
 #define IN #1#
 
-; schedule "fade",0,5,0
+; schedule "fade",0,20,0
 instr fade ; p4: 0 - out 1 - in
 	
 	istart = (p4==$OUT) ? 1 : 0.0001
 	iend = (p4==$OUT) ? 0.0001 : 1
-	gkLevel init istart
-	gkLevel line istart,p3,iend
-	;gkLevel port iend,p3/2
+	gkFade init istart
+	gkFade expon istart,p3,iend
+	;gkFade port iend,p3/2
 	
 endin
 
 instr note
 	iharmonic = p4
 	; 4 kanalit- kasuta vbap4 ?
-	iamp = ($MAXAMP - ($MAXAMP-$MINAMP)/giHarmCount*(iharmonic-1))/sqrt(giHarmCount)*0.5
+	iamp = $MAXAMP*1/iharmonic ;($MAXAMP - ($MAXAMP-$MINAMP)/giHarmCount*(iharmonic-1))/sqrt(giHarmCount)*0.5
 	iRotationSpeed = $MINSPEED + ($MAXSPEED-$MINSPEED)/giHarmCount*(iharmonic-1)
 	;print giRotationSpeed[iharmonic-1]*giCircleTime
 	print iamp, iRotationSpeed
@@ -355,10 +350,12 @@ instr note
 	;ifn =  (iharmonic == 1) ? giSine2 : giSine; -1
 	aenv linen 1,0.2,p3,0.2
 	
-	kfn chnget "fn"
-	kamp = chnget:k(SharmName) * aenv*iamp*(gkAtack[iharmonic-1]+1)*gkLevel
+	;kfn chnget "fn"
+	kamp = chnget:k(SharmName) *iamp*(gkAtack[iharmonic-1]+1)*gkFade*gkLevel
 	kamp port kamp, 0.05
-	asig oscilikt kamp,gkFreq[iharmonic-1], kfn; gkFn;ifn
+	amp interp kamp
+	;asig oscilikt amp*aenv,gkFreq[iharmonic-1], kfn; gkFn;ifn
+	asig poscil amp*aenv,gkFreq[iharmonic-1], giMixTable
 	;Milleks liita: gaAtack[iharmonic-1] = 0
 	if (nchnls==4) then
 		a1, a2, a3, a4 vbap4 asig, kdegree 
@@ -368,7 +365,7 @@ instr note
 	if (nchnls==2) then
 		outs a1,a2
 	elseif (nchnls==4) then
-		outq a1,a2,a3,a4
+		outq a1,a2,a4,a3 ; check, if back speakers right!
 	endif
 	
 endin
@@ -376,7 +373,7 @@ endin
 
 </CsInstruments>
 <CsScore>
-i "sendHarmonic" 0 0.1 9114 "192.168.11.14" 1
+;i "sendHarmonic" 0 0.1 9114 "192.168.11.14" 1
 
 </CsScore>
 </CsoundSynthesizer>
@@ -456,7 +453,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.75243537</value>
+  <value>0.75243539</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -474,7 +471,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.92446259</value>
+  <value>0.92446262</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -510,7 +507,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.26851701</value>
+  <value>0.26851702</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -546,7 +543,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.61257143</value>
+  <value>0.61257142</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -564,7 +561,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.78459864</value>
+  <value>0.78459865</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -582,7 +579,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.95662585</value>
+  <value>0.95662588</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -618,7 +615,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.30068027</value>
+  <value>0.30068028</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -654,7 +651,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.64473469</value>
+  <value>0.64473468</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -672,7 +669,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.81676190</value>
+  <value>0.81676191</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -690,7 +687,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.98878912</value>
+  <value>0.98878914</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -762,7 +759,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.52214896</value>
+  <value>0.52214897</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -780,7 +777,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.87834893</value>
+  <value>0.87834895</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -852,7 +849,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.69496599</value>
+  <value>0.69496602</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -906,7 +903,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.50462146</value>
+  <value>0.50462145</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -960,7 +957,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.30551328</value>
+  <value>0.30551329</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -978,7 +975,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.57117577</value>
+  <value>0.57117575</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -1032,7 +1029,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.36243318</value>
+  <value>0.36243317</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -1050,7 +1047,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.62222515</value>
+  <value>0.62222517</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -1068,7 +1065,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.88308449</value>
+  <value>0.88308448</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -1086,7 +1083,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.14298881</value>
+  <value>0.14298882</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -1104,7 +1101,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.40193812</value>
+  <value>0.40193811</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -1122,7 +1119,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.65776959</value>
+  <value>0.65776956</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -1140,7 +1137,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.91478078</value>
+  <value>0.91478080</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -1158,7 +1155,7 @@ createMeters(20)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.17083695</value>
+  <value>0.17083696</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
@@ -1216,7 +1213,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.05000000</yValue>
+  <yValue>0.07000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1278,7 +1275,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.03500000</yValue>
+  <yValue>0.15500000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1340,7 +1337,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.29000000</yValue>
+  <yValue>0.25000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1402,7 +1399,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.61000000</yValue>
+  <yValue>0.09500000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1464,7 +1461,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.03500000</yValue>
+  <yValue>0.04500000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1526,7 +1523,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.47500000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1588,7 +1585,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.03000000</yValue>
+  <yValue>0.05000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1650,7 +1647,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.09500000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1712,7 +1709,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.38000000</yValue>
+  <yValue>0.09500000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1774,7 +1771,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.06000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1836,7 +1833,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.04000000</yValue>
+  <yValue>0.09500000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1898,7 +1895,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.37500000</yValue>
+  <yValue>0.08000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1960,7 +1957,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.11000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2022,7 +2019,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.07000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2084,7 +2081,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.07000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2146,7 +2143,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.04500000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2208,7 +2205,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.04000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2270,7 +2267,7 @@ createMeters(20)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.00000000</yValue>
+  <yValue>0.07500000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2471,8 +2468,8 @@ createMeters(20)
  </bsbObject>
  <bsbObject version="2" type="BSBLabel">
   <objectName/>
-  <x>7</x>
-  <y>41</y>
+  <x>5</x>
+  <y>70</y>
   <width>80</width>
   <height>25</height>
   <uuid>{8ea13628-8f66-4ead-ba08-f59a6c7804a5}</uuid>
@@ -2500,8 +2497,8 @@ createMeters(20)
  </bsbObject>
  <bsbObject version="2" type="BSBDisplay">
   <objectName>clients</objectName>
-  <x>102</x>
-  <y>42</y>
+  <x>100</x>
+  <y>71</y>
   <width>80</width>
   <height>25</height>
   <uuid>{13656e53-0115-4068-af00-82a2597f12b1}</uuid>
@@ -2529,8 +2526,8 @@ createMeters(20)
  </bsbObject>
  <bsbObject version="2" type="BSBButton">
   <objectName>button85</objectName>
-  <x>218</x>
-  <y>40</y>
+  <x>216</x>
+  <y>69</y>
   <width>100</width>
   <height>30</height>
   <uuid>{91e10230-8b4f-42ae-b925-3ae4470a0ff4}</uuid>
@@ -2544,8 +2541,143 @@ createMeters(20)
   <image>/</image>
   <eventLine>i "control" 0 60</eventLine>
   <latch>false</latch>
-  <latched>false</latched>
+  <latched>true</latched>
+ </bsbObject>
+ <bsbObject version="2" type="BSBLabel">
+  <objectName/>
+  <x>7</x>
+  <y>37</y>
+  <width>80</width>
+  <height>25</height>
+  <uuid>{4bd987b1-4448-4562-93bf-c362b96f2c5c}</uuid>
+  <visible>true</visible>
+  <midichan>0</midichan>
+  <midicc>0</midicc>
+  <label>Level:</label>
+  <alignment>left</alignment>
+  <font>Arial</font>
+  <fontsize>10</fontsize>
+  <precision>3</precision>
+  <color>
+   <r>0</r>
+   <g>0</g>
+   <b>0</b>
+  </color>
+  <bgcolor mode="nobackground">
+   <r>255</r>
+   <g>255</g>
+   <b>255</b>
+  </bgcolor>
+  <bordermode>noborder</bordermode>
+  <borderradius>1</borderradius>
+  <borderwidth>1</borderwidth>
+ </bsbObject>
+ <bsbObject version="2" type="BSBHSlider">
+  <objectName>level</objectName>
+  <x>104</x>
+  <y>38</y>
+  <width>144</width>
+  <height>21</height>
+  <uuid>{a73a01ce-f4c3-494c-9277-56500a25f7db}</uuid>
+  <visible>true</visible>
+  <midichan>0</midichan>
+  <midicc>0</midicc>
+  <minimum>0.00000000</minimum>
+  <maximum>1.00000000</maximum>
+  <value>0.66666669</value>
+  <mode>lin</mode>
+  <mouseControl act="jump">continuous</mouseControl>
+  <resolution>-1.00000000</resolution>
+  <randomizable group="0">false</randomizable>
  </bsbObject>
 </bsbPanel>
 <bsbPresets>
+<preset name="all_null" number="0" >
+<value id="{c9ca5d94-381d-439a-8698-cc1319c611f2}" mode="1" >0.75243539</value>
+<value id="{f86fcfa7-3c5a-4b98-af1e-4cf62881c0da}" mode="1" >0.92446262</value>
+<value id="{fe1d441f-5a39-4771-8def-d3b6aa899b04}" mode="1" >0.09648980</value>
+<value id="{1adf40cc-5803-4e67-be4c-d83dbe9d2e09}" mode="1" >0.26851702</value>
+<value id="{245d591c-c8ad-4624-ba0d-4ec9e982ce48}" mode="1" >0.44054422</value>
+<value id="{dd9601ee-3642-4404-9a6d-2b7986dd2ae9}" mode="1" >0.61257142</value>
+<value id="{6e1e06c0-abf6-4f10-934c-b3011c7e58cc}" mode="1" >0.78459865</value>
+<value id="{7c77da81-419d-4a43-a4b9-47c99d26a4b5}" mode="1" >0.95662588</value>
+<value id="{89408ffa-8ac2-41b0-9efe-89a24d5f745d}" mode="1" >0.12865306</value>
+<value id="{0007c654-7e71-438f-9bbe-81ed1fce0c33}" mode="1" >0.30068028</value>
+<value id="{12bf206c-f0fb-4c9a-8688-5ba988f74857}" mode="1" >0.47270748</value>
+<value id="{040e3ae0-d5de-4023-88b4-08fb9a340b3c}" mode="1" >0.64473468</value>
+<value id="{9356d378-ee24-4c08-9d4e-eccbfecec343}" mode="1" >0.81676191</value>
+<value id="{5010689b-cd4f-4ed1-a5ac-3ac03b02b3dc}" mode="1" >0.98878914</value>
+<value id="{f76b9a2f-1d49-4b6d-971b-69711e016885}" mode="1" >0.16081633</value>
+<value id="{04a57aa7-98be-473b-9cb2-fa5bdae1d351}" mode="1" >0.33284354</value>
+<value id="{f3013ccf-54fa-40fd-b88a-afddfd547b9f}" mode="1" >0.16403896</value>
+<value id="{01e50657-7a99-4fc5-8e60-0f22a71ab673}" mode="1" >0.52214897</value>
+<value id="{b7f399e2-4adf-4e58-9ed8-17749b6149fc}" mode="1" >0.87834895</value>
+<value id="{2495d514-915a-4699-b38c-f37de0112623}" mode="1" >0.23044796</value>
+<value id="{f0448970-6203-44cb-b969-20aa59c55eb5}" mode="1" >0.14920342</value>
+<value id="{a76ecc21-1aa7-4e27-8970-094b9408a9ac}" mode="1" >0.42256221</value>
+<value id="{06ab0998-921a-4a5e-b24a-addb16b7d219}" mode="1" >0.69496602</value>
+<value id="{22e570a3-456b-4768-a268-37fb66e7b89f}" mode="1" >0.96641475</value>
+<value id="{0251c5be-f7f8-43e5-918f-a21836ec1429}" mode="1" >0.23511082</value>
+<value id="{497ecbb2-410c-402c-adcc-dc4c937d940b}" mode="1" >0.50462145</value>
+<value id="{cb33ab73-afa1-4768-b89b-c2309649d01e}" mode="1" >0.77317709</value>
+<value id="{5009bffa-affc-4aea-b0f3-8c66919029bf}" mode="1" >0.04077770</value>
+<value id="{c4746785-07d6-4f57-a7b0-c6f6b2770af0}" mode="1" >0.30551329</value>
+<value id="{88a9bb51-f3e0-44b9-822b-3c08c8c8144f}" mode="1" >0.57117575</value>
+<value id="{9c5ad4e6-6c7a-4520-a6ef-89f384a09ce1}" mode="1" >0.83588326</value>
+<value id="{0b76b89e-30b8-47b8-997b-ba1875f2222b}" mode="1" >0.09963573</value>
+<value id="{e44f98e5-dfc5-49db-bbcb-1075b2509637}" mode="1" >0.36243317</value>
+<value id="{8cacb66b-73fd-4b54-8dd5-552d8590051e}" mode="1" >0.62222517</value>
+<value id="{20fe3752-5b6f-47dd-aa99-86189421b9d1}" mode="1" >0.88308448</value>
+<value id="{be8954a8-62e1-4605-afaf-b5e6f0776184}" mode="1" >0.14298882</value>
+<value id="{3cad98b9-3c31-4a96-8762-3d61c69b8028}" mode="1" >0.40193811</value>
+<value id="{e7806f7d-0de6-423d-912e-72e79ba5d2d1}" mode="1" >0.65776956</value>
+<value id="{a2feff26-fd1d-41f3-8f6f-906b13b6a650}" mode="1" >0.91478080</value>
+<value id="{a4e28441-1057-4c50-9baf-0de28fed2ff6}" mode="1" >0.17083696</value>
+<value id="{8b12513e-4fb1-4969-bea1-137b912671e4}" mode="1" >-255.00000000</value>
+<value id="{943e3fb0-4279-494f-b3ab-e8214108319c}" mode="1" >20.00000000</value>
+<value id="{84012c96-0745-4719-b431-cd880d56e11a}" mode="1" >0.00000000</value>
+<value id="{84012c96-0745-4719-b431-cd880d56e11a}" mode="2" >0.00000000</value>
+<value id="{0e67b377-7021-4573-8db0-02315bd18b04}" mode="1" >0.00000000</value>
+<value id="{0e67b377-7021-4573-8db0-02315bd18b04}" mode="2" >0.00000000</value>
+<value id="{8df758cd-82d1-4478-a22d-43ca8fbe4a83}" mode="1" >0.00000000</value>
+<value id="{8df758cd-82d1-4478-a22d-43ca8fbe4a83}" mode="2" >0.00000000</value>
+<value id="{0bdcc792-486c-4015-ab6c-be12bada316e}" mode="1" >0.00000000</value>
+<value id="{0bdcc792-486c-4015-ab6c-be12bada316e}" mode="2" >0.00000000</value>
+<value id="{621b3719-a6ea-45f3-84eb-c9a9b289bd46}" mode="1" >0.00000000</value>
+<value id="{621b3719-a6ea-45f3-84eb-c9a9b289bd46}" mode="2" >0.00000000</value>
+<value id="{0c2cbd17-3dae-439d-b3f9-2f31f83ebd18}" mode="1" >0.00000000</value>
+<value id="{0c2cbd17-3dae-439d-b3f9-2f31f83ebd18}" mode="2" >0.00000000</value>
+<value id="{749f49ed-5300-44af-a7b6-ecfe41908a6a}" mode="1" >0.00000000</value>
+<value id="{749f49ed-5300-44af-a7b6-ecfe41908a6a}" mode="2" >0.00000000</value>
+<value id="{f0aa8c9f-b141-4886-ba33-1335228cac49}" mode="1" >0.00000000</value>
+<value id="{f0aa8c9f-b141-4886-ba33-1335228cac49}" mode="2" >0.00000000</value>
+<value id="{fe8c4b40-0819-4f8d-8977-8a7a13520c77}" mode="1" >0.00000000</value>
+<value id="{fe8c4b40-0819-4f8d-8977-8a7a13520c77}" mode="2" >0.00000000</value>
+<value id="{a0737962-d87c-40a2-97d9-b92ca06ab48c}" mode="1" >0.00000000</value>
+<value id="{a0737962-d87c-40a2-97d9-b92ca06ab48c}" mode="2" >0.00000000</value>
+<value id="{d5dd5020-5147-45b2-9437-f49879b36e09}" mode="1" >0.00000000</value>
+<value id="{d5dd5020-5147-45b2-9437-f49879b36e09}" mode="2" >0.00000000</value>
+<value id="{3a199927-d2b4-440f-88ad-420017cec010}" mode="1" >0.00000000</value>
+<value id="{3a199927-d2b4-440f-88ad-420017cec010}" mode="2" >0.00000000</value>
+<value id="{d173147d-11f2-4fb2-a0be-d3887883a8ff}" mode="1" >0.00000000</value>
+<value id="{d173147d-11f2-4fb2-a0be-d3887883a8ff}" mode="2" >0.00000000</value>
+<value id="{66e63ec2-12c4-43a9-b777-df021f4202e3}" mode="1" >0.00000000</value>
+<value id="{66e63ec2-12c4-43a9-b777-df021f4202e3}" mode="2" >0.00000000</value>
+<value id="{07a42e82-c36e-446e-8150-00bf61ea5660}" mode="1" >0.00000000</value>
+<value id="{07a42e82-c36e-446e-8150-00bf61ea5660}" mode="2" >0.00000000</value>
+<value id="{fa617d39-4eb4-41c7-9be9-a67ba61dc331}" mode="1" >0.00000000</value>
+<value id="{fa617d39-4eb4-41c7-9be9-a67ba61dc331}" mode="2" >0.00000000</value>
+<value id="{1a466fde-dfdc-440e-9b00-115dca552e81}" mode="1" >0.00000000</value>
+<value id="{1a466fde-dfdc-440e-9b00-115dca552e81}" mode="2" >0.00000000</value>
+<value id="{87d28abc-9c50-42e2-8add-49024263262b}" mode="1" >0.00000000</value>
+<value id="{87d28abc-9c50-42e2-8add-49024263262b}" mode="2" >0.00000000</value>
+<value id="{f391771b-b60e-41d5-afef-eaae0a9b5950}" mode="1" >0.00000000</value>
+<value id="{f391771b-b60e-41d5-afef-eaae0a9b5950}" mode="2" >0.00000000</value>
+<value id="{84ec5d7f-9e38-4524-8aca-d07f03298535}" mode="1" >0.00000000</value>
+<value id="{84ec5d7f-9e38-4524-8aca-d07f03298535}" mode="2" >0.00000000</value>
+<value id="{13656e53-0115-4068-af00-82a2597f12b1}" mode="1" >5.00000000</value>
+<value id="{13656e53-0115-4068-af00-82a2597f12b1}" mode="4" >5.000</value>
+<value id="{91e10230-8b4f-42ae-b925-3ae4470a0ff4}" mode="4" >0</value>
+<value id="{a73a01ce-f4c3-494c-9277-56500a25f7db}" mode="1" >0.66666669</value>
+</preset>
 </bsbPresets>

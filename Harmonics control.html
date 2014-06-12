@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type">
+    <title>Harmonics control</title>
+    <meta content="Tarmo Johannes" name="author">
+    <meta content="Userf interface for soundgame to control hrmonics" name="description">
+    <style type="text/css">
+input.button {
+	 border-radius: 8px;
+	 font-size: 16px;
+
+}
+
+  </style>
+    <script language="javascript" type="text/javascript">
+
+
+  var harmonic = 0;  // number of the harmonic controlled
+
+  function init()
+  {
+	document.myform.url.value = "ws://192.168.11.199:7007"
+	doConnect();
+  harmonic = document.myform.harm_number.value;
+  }
+
+	function sliderMoved(value) {
+		console.log("Amp ", document.myform.amplitude.value);
+		if (harmonic>0)
+			doSend("harmonic " + harmonic.toString() + " " +  document.myform.amplitude.value.toString());
+	}
+
+  function doConnect()
+  {
+    websocket = new WebSocket(document.myform.url.value);
+    websocket.onopen = function(evt) { onOpen(evt) };
+    websocket.onclose = function(evt) { onClose(evt) };
+    websocket.onmessage = function(evt) { onMessage(evt) };
+    websocket.onerror = function(evt) { onError(evt) };
+  }
+
+  function onOpen(evt)
+  {
+    document.getElementById("connected").innerHTML = "YES";
+	document.myform.connectButton.disabled = true;
+  //doSend("harmonic?");
+  }
+
+  function onClose(evt)
+  {
+	document.getElementById("connected").innerHTML = "NO";
+	document.myform.connectButton.disabled = false;
+	document.getElementById("harmonic").innerHTML = "0";
+	harmonic = 0;
+  }
+
+  function onMessage(evt)
+  {
+    console.log("Message: " + evt.data + '\n');
+    var mess_array = evt.data.split(" ");
+    console.log(mess_array[0]);
+    if (mess_array[0] == "harmonic") {	
+	  document.getElementById("harmonic").innerHTML = mess_array[1]; //NB! innerHTML bad practice. what to do?
+	  harmonic = parseInt(mess_array[1]); // TODO: check if int.
+	  console.log("Harmonic: ",harmonic);
+    }
+    
+  }
+
+  function onError(evt)
+  {
+    console.log('Error: ' + evt.data + '\n');
+    websocket.close();
+  }
+
+  function doSend(message)
+  {
+    console.log("sent: " + message + '\n'); 
+    websocket.send(message);
+  }
+
+	function sendAttack() {
+		console.log("attack!");
+		if (harmonic>0) {
+			doSend("attack "+harmonic.toString());
+			document.myform.attack.disabled = true; // don't let to play again for some time
+			setTimeout(function(){ document.myform.attack.disabled = false;},1000);
+		} else {
+			console.log("Not connected to the server?");
+			//alert("Harmonic number not set!\nProbably not connected to server.");
+		}
+	}
+
+   window.addEventListener("load", init, false);
+
+   function doDisconnect() {
+      websocket.close();
+   }
+      
+      function setHarmonic(value) {
+        harmonic = value;
+        console.log("Harmonic: ",harmonic);
+      
+      }
+      
+
+
+  </script>
+  </head>
+  <body style="background-color: black; color: white; width: 440px; overflow-x:hidden;">
+    <h1>Harmonics control</h1>
+    <form name="myform"><br>
+      Server address: <input value="ws://localhost:6006/ws" id="url" type="text"><br>
+      <br>
+      Connected with server:
+      <div id="connected">NO</div>
+      <br>
+      Number of harmonic to be controlled:&nbsp; <input step="1" max="20"
+      min="0" value="0" id="harm_number" type="number" onchange="setHarmonic(this.value);" ><br>
+      <div id="harmonic">0</div>
+      <br>
+      Strength (amplitude) of the harmonic:<br>
+      <br>
+      <input step="0.01" value="0" id="amplitude" min="0" max="1" oninput="sliderMoved(this.value);"
+        onchange="sliderMoved(this.value);" style="height: 15px; width:220px; margin-left: 20px;"
+        type="range"> <br>
+      <!--Both onmove and onchange to make it work in IE--> <br>
+      <input id="attack" class="button" onclick="sendAttack();" value="Attack" type="button">
+      <input id="connectButton" class="button" onclick="doConnect();" value="Connect"
+        type="button"> <br>
+      <br>
+    </form>
+  </body>
+</html>
