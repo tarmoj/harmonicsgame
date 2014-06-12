@@ -49,6 +49,23 @@
        </widget>
       </item>
       <item>
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Level:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSlider" name="levelSlider">
+        <property name="value">
+         <number>80</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -74,15 +91,15 @@
       </item>
       <item>
        <widget class="QTimeEdit" name="durationEdit">
+        <property name="displayFormat">
+         <string>mm:ss</string>
+        </property>
         <property name="time">
          <time>
           <hour>0</hour>
           <minute>20</minute>
           <second>0</second>
          </time>
-        </property>
-        <property name="displayFormat">
-         <string>mm:ss</string>
         </property>
        </widget>
       </item>
@@ -98,6 +115,13 @@
          </size>
         </property>
        </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="resetButton">
+        <property name="text">
+         <string>Reset amp</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
@@ -169,7 +193,7 @@
      <x>0</x>
      <y>0</y>
      <width>450</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
