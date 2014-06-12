@@ -55,11 +55,13 @@ void WsServer::processTextMessage(QString message)
 
     QStringList messageParts = message.split(" ");
     if (message.startsWith("harmonic")) {
-        qDebug()<<"Harmonic: "<<messageParts[1]<<" amplitude: "<< messageParts[2];
+        //qDebug()<<"Harmonic: "<<messageParts[1]<<" amplitude: "<< messageParts[2];
+        emit newSliderValue(messageParts[1].toInt(), int(messageParts[2].toFloat()*100)  );
     }
 
     if (message.startsWith("attack")) {
-        qDebug()<<"Harmonic: "<<messageParts[1]<<" attack!";
+        //qDebug()<<"Harmonic: "<<messageParts[1]<<" attack!";
+        emit attack(messageParts[1].toInt());
     }
 
 

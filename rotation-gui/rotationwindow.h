@@ -24,6 +24,7 @@ public slots:
     void setRunTime(int runTime);
     void setCircleTime(int newValue);
 
+    void attack(int harmonic);
 private slots:
     void on_cirleTimeSlider_valueChanged(int value);
 
@@ -32,6 +33,10 @@ private slots:
     void on_inButton_clicked();
 
     void on_outButton_clicked();
+
+    void on_levelSlider_sliderMoved(int position);
+
+    void on_resetButton_clicked();
 
 private:
     Ui::RotationWindow *ui;
