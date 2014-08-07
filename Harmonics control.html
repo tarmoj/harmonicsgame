@@ -15,16 +15,29 @@ input.button {
   </style>
     <script language="javascript" type="text/javascript">
 
+	var uuid;
+	var harmonic = 0;  // number of the harmonic controlled
 
-  var harmonic = 0;  // number of the harmonic controlled
+	function init()
+	{
+		document.myform.url.value = "ws://192.168.42.52:7007";//"ws://192.168.11.199:7007"
+		
+		harmonic = 0;//document.myform.harm_number.value;
 
-  function init()
-  {
-	document.myform.url.value = "ws://192.168.11.199:7007"
-	doConnect();
-  harmonic = document.myform.harm_number.value;
-  }
+		//var uuid = getCookie("harmcontrol-id");
+		if (!supportsLocalStorage()) { 
+			alert("No support for local storage!"); }// perhaps try with cookies?} 
 
+		uuid = localStorage.getItem("hc_uuid");
+		if (!uuid)  { // if not set, generate an uuid for it
+			console.log("UUid not set!");
+			uuid = generateUUID();
+			//setCookie("harmcontrol-id",uuid,20*365);
+			localStorage.setItem("hc_uuid", uuid);
+		}
+		console.log("uuid: ", uuid);
+		doConnect();
+	}
 	function sliderMoved(value) {
 		console.log("Amp ", document.myform.amplitude.value);
 		if (harmonic>0)
@@ -44,7 +57,7 @@ input.button {
   {
     document.getElementById("connected").innerHTML = "YES";
 	document.myform.connectButton.disabled = true;
-  //doSend("harmonic?");
+    doSend("harmonic_for "+uuid);
   }
 
   function onClose(evt)
@@ -103,7 +116,50 @@ input.button {
         console.log("Harmonic: ",harmonic);
       
       }
-      
+     
+	// generate uuid and save it in a cookie: ---------------------
+	// code from http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
+	
+	function generateUUID(){
+		var d = new Date().getTime();
+		var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+			var r = (d + Math.random()*16)%16 | 0;
+			d = Math.floor(d/16);
+			return (c=='x' ? r : (r&0x7|0x8)).toString(16);
+		});
+    return uuid;
+    }
+    
+    /*
+    // cookie management from http://www.w3schools.com/js/js_cookies.asp ---------------------
+    
+    function setCookie(cname, cvalue, exdays) {
+		var d = new Date();
+		d.setTime(d.getTime() + (exdays*24*60*60*1000));
+		var expires = "expires="+d.toGMTString();
+		document.cookie = cname + "=" + cvalue + "; " + expires;
+	}
+
+	function getCookie(cname) {
+		var name = cname + "=";
+		var ca = document.cookie.split(';');
+		for(var i=0; i<ca.length; i++) {
+			var c = ca[i];
+			while (c.charAt(0)==' ') c = c.substring(1);
+			if (c.indexOf(name) != -1) return c.substring(name.length, c.length);
+		}
+		return "";
+	}
+
+	*/
+	// localStorage functions ------------------------------------------------
+	function supportsLocalStorage() {
+		try {
+			return 'localStorage' in window && window['localStorage'] !== null;
+		} catch (e) {
+			return false;
+		}
+	}
 
 
   </script>
@@ -116,8 +172,11 @@ input.button {
       Connected with server:
       <div id="connected">NO</div>
       <br>
-      Number of harmonic to be controlled:&nbsp; <input step="1" max="20"
-      min="0" value="0" id="harm_number" type="number" onchange="setHarmonic(this.value);" ><br>
+      Number of harmonic to be controlled:&nbsp;
+      <!--
+      <input step="1" max="20" min="0" value="0" id="harm_number" type="number" onchange="setHarmonic(this.value);" >
+      -->
+      <br>
       <div id="harmonic">0</div>
       <br>
       Strength (amplitude) of the harmonic:<br>

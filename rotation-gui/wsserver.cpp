@@ -13,6 +13,7 @@ WsServer::WsServer(quint16 port, QObject *parent) :
                                             QWebSocketServer::NonSecureMode, this)),
     m_clients()
 {
+    lastHarmonic = 0;
     if (m_pWebSocketServer->listen(QHostAddress::Any, port)) {
         qDebug() << "WsServer listening on port" << port;
         connect(m_pWebSocketServer, &QWebSocketServer::newConnection,
@@ -48,13 +49,25 @@ void WsServer::processTextMessage(QString message)
         return;
     }
 
-    if (message=="harmonic?") {
-        pClient->sendTextMessage("harmonic "+ QString::number(m_clients.count()) ); // TODO: vastavalt
-        return;
-    }
+
 
     QStringList messageParts = message.split(" ");
-    if (message.startsWith("harmonic")) {
+    if (message.startsWith("harmonic_for")) {
+        // check if the uui of the client is already known and the harmonic set
+        int harmonic = 0;
+        QString uuid = messageParts[1];
+        if (clientsHash.contains(uuid))
+            harmonic = clientsHash[uuid];
+        else {
+            harmonic = ++lastHarmonic;
+            clientsHash.insert(uuid,harmonic);
+        }
+
+        pClient->sendTextMessage("harmonic "+ QString::number(harmonic)); // TODO: vastavalt
+        //return;
+    }
+
+    if (message.startsWith("harmonic ")) {
         //qDebug()<<"Harmonic: "<<messageParts[1]<<" amplitude: "<< messageParts[2];
         emit newSliderValue(messageParts[1].toInt(), int(messageParts[2].toFloat()*100)  );
     }

@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QtCore/QList>
 #include <QtCore/QByteArray>
+#include <QtCore/QHash>
 
 QT_FORWARD_DECLARE_CLASS(QWebSocketServer)
 QT_FORWARD_DECLARE_CLASS(QWebSocket)
@@ -33,6 +34,8 @@ private Q_SLOTS:
 private:
     QWebSocketServer *m_pWebSocketServer;
     QList<QWebSocket *> m_clients;
+    int lastHarmonic;
+    QHash<QString, int>  clientsHash;
 
 };
 
