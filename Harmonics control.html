@@ -20,7 +20,7 @@ input.button {
 
 	function init()
 	{
-		document.myform.url.value = "ws://192.168.42.52:7007";//"ws://192.168.11.199:7007"
+		document.myform.url.value = "ws://192.168.1.199:7007";//"ws://192.168.42.52:7007";//"ws://192.168.11.199:7007"
 		
 		harmonic = 0;//document.myform.harm_number.value;
 
@@ -167,7 +167,7 @@ input.button {
   <body style="background-color: black; color: white; width: 440px; overflow-x:hidden;">
     <h1>Harmonics control</h1>
     <form name="myform"><br>
-      Server address: <input value="ws://localhost:6006/ws" id="url" type="text"><br>
+      Server address: <input value="ws://192.168.1.199:7007/ws" id="url" type="text"><br>
       <br>
       Connected with server:
       <div id="connected">NO</div>
@@ -181,9 +181,9 @@ input.button {
       <br>
       Strength (amplitude) of the harmonic:<br>
       <br>
-      <input step="0.01" value="0" id="amplitude" min="0" max="1" oninput="sliderMoved(this.value);"
-        onchange="sliderMoved(this.value);" style="height: 15px; width:220px; margin-left: 20px;"
-        type="range"> <br>
+      <input step="0.01" value="0" id="amplitude" min="0" max="1" 
+        oninput="sliderMoved(this.value);" style="height: 15px; width:220px; margin-left: 20px;"
+        type="range"> <br> <!-- onchange="sliderMoved(this.value);" -->
       <!--Both onmove and onchange to make it work in IE--> <br>
       <input id="attack" class="button" onclick="sendAttack();" value="Attack" type="button">
       <input id="connectButton" class="button" onclick="doConnect();" value="Connect"

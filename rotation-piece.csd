@@ -7,7 +7,7 @@
 
 sr = 44100
 ksmps = 32
-nchnls = 2; 4
+nchnls = 4
 0dbfs = 1
 
 #define MAXAMP #0.1# ; was 0.5
@@ -16,7 +16,7 @@ nchnls = 2; 4
 #define MINSPEED #1#
 #define MAXSPEED #2#
 
-#define MAXCLIENTS #20#
+#define MAXCLIENTS #50#
 
 ;CONSTANTS: -----------------------
 giHandle init 0;OSCinit 9000 ; osc messages about level of harmonics
@@ -1309,7 +1309,7 @@ createMeters(50)
   <image>/</image>
   <eventLine>i "control" 0 120</eventLine>
   <latch>false</latch>
-  <latched>true</latched>
+  <latched>false</latched>
  </bsbObject>
  <bsbObject version="2" type="BSBLabel">
   <objectName/>
