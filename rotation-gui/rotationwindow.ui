@@ -58,7 +58,7 @@
       <item>
        <widget class="QSlider" name="levelSlider">
         <property name="value">
-         <number>80</number>
+         <number>40</number>
         </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -97,7 +97,7 @@
         <property name="time">
          <time>
           <hour>0</hour>
-          <minute>20</minute>
+          <minute>12</minute>
           <second>0</second>
          </time>
         </property>
@@ -193,7 +193,7 @@
      <x>0</x>
      <y>0</y>
      <width>450</width>
-     <height>21</height>
+     <height>19</height>
     </rect>
    </property>
   </widget>

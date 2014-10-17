@@ -2,6 +2,7 @@
 #include "QtWebSockets/qwebsocketserver.h"
 #include "QtWebSockets/qwebsocket.h"
 #include <QtCore/QDebug>
+#include "rotationwindow.h"
 
 
 QT_USE_NAMESPACE
@@ -29,6 +30,20 @@ WsServer::~WsServer()
     qDeleteAll(m_clients.begin(), m_clients.end());
 }
 
+int WsServer::getHarmonic(QString uuid)
+{
+    int harmonic = 0;
+
+    if (clientsHash.contains(uuid))
+        harmonic = clientsHash[uuid];
+    else {
+        harmonic = ++lastHarmonic;
+        if (harmonic<=maxHarmonic) // add only if it is not out of given slidercount
+            clientsHash.insert(uuid,harmonic);
+    }
+    return (harmonic>maxHarmonic) ? -1 : harmonic; // return -1 if
+}
+
 
 void WsServer::onNewConnection()
 {
@@ -54,16 +69,16 @@ void WsServer::processTextMessage(QString message)
     QStringList messageParts = message.split(" ");
     if (message.startsWith("harmonic_for")) {
         // check if the uui of the client is already known and the harmonic set
-        int harmonic = 0;
+
         QString uuid = messageParts[1];
-        if (clientsHash.contains(uuid))
-            harmonic = clientsHash[uuid];
-        else {
-            harmonic = ++lastHarmonic;
-            clientsHash.insert(uuid,harmonic);
-        }
+        int harmonic = getHarmonic(uuid);
 
         pClient->sendTextMessage("harmonic "+ QString::number(harmonic)); // TODO: vastavalt
+        if (harmonic==-1) { // there are already too many clients
+            m_clients.removeAll(pClient);
+            pClient->deleteLater();
+            emit newConnection(m_clients.count());
+        }
         //return;
     }
 
@@ -96,6 +111,7 @@ void WsServer::socketDisconnected()
     QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
     if (pClient) {
         m_clients.removeAll(pClient);
+        emit newConnection(m_clients.count());
         pClient->deleteLater();
     }
 }

@@ -23,6 +23,7 @@ public slots:
     void setClientsCount(int clientsCount);
     void setRunTime(int runTime);
     void setCircleTime(int newValue);
+    int getSliderCount() {return sliderCount;}
 
     void attack(int harmonic);
 private slots:

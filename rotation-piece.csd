@@ -2,15 +2,16 @@
 <CsOptions>
 -b1024 -B2048 
 -+rtaudio=jack -odac:system:playback_ -+jack_client=rotation-piece 
+-d -g
 </CsOptions>
 <CsInstruments>
 
 sr = 44100
 ksmps = 32
-nchnls = 4
+nchnls = 2;4
 0dbfs = 1
 
-#define MAXAMP #0.1# ; was 0.5
+#define MAXAMP #0.2# ; was 0.5
 #define MINAMP # $MAXAMP*0.25 #
 
 #define MINSPEED #1#
@@ -87,146 +88,10 @@ endin
 
 
 
-
-;TODO: checkbox või menu, kas midi või OSC
-; MIDI: --------------------------------------------
-;alwayson "readmidi"
-; schedule "readmidi",0,5
-instr readmidi	
-
-	gkAmplitude[0]  ctrl7 1, 0, 0, 1 
-	gkAmplitude[1] ctrl7 1, 1, 0, 1
-	gkAmplitude[2] ctrl7 1, 2, 0, 1
-	gkAmplitude[3] ctrl7 1, 3, 0, 1
-	gkAmplitude[4] ctrl7 1, 4, 0, 1
-	gkAmplitude[5] ctrl7 1, 5, 0, 1
-	gkAmplitude[6] ctrl7 1, 6, 0, 1
-	initc7 1, 7, 0
-	gkAmplitude[7] ctrl7 1, 7, 0, 1
-	
-	gkAmplitude[8] ctrl7 1, 16, 0, 1	
-	gkAmplitude[9] ctrl7 1, 17, 0, 1
-	gkAmplitude[10] ctrl7 1, 18, 0, 1
-	gkAmplitude[11] ctrl7 1, 19, 0, 1
-	gkAmplitude[12] ctrl7 1, 20, 0, 1
-	gkAmplitude[13] ctrl7 1, 21, 0, 1
-	gkAmplitude[14] ctrl7 1, 22, 0, 1
-	gkAmplitude[15] ctrl7 1, 23, 0, 1
-
-schedule "readmidibutton",0,3600,64,1
-schedule "readmidibutton",0,3600,65,2
-schedule "readmidibutton",0,3600,66,3
-schedule "readmidibutton",0,3600,67,4
-schedule "readmidibutton",0,3600,68,5
-schedule "readmidibutton",0,3600,69,6
-schedule "readmidibutton",0,3600,70,7
-schedule "readmidibutton",0,3600,71,8
-
-schedule "readmidibutton",0,3600,48,9
-schedule "readmidibutton",0,3600,49,10
-schedule "readmidibutton",0,3600,50,11
-schedule "readmidibutton",0,3600,51,12
-schedule "readmidibutton",0,3600,52,13
-schedule "readmidibutton",0,3600,53,14
-schedule "readmidibutton",0,3600,54,15
-schedule "readmidibutton",0,3600,55,16
-
-endin
-
-
-
-instr readmidibutton
-	ibutton = p4
-	iharmonic = p5
-	kval ctrl7 1,ibutton,0,1
-	if (changed(kval)==1 && kval==1) then
-		schedkwhen kval, 0, 0, "atack", 0, 1, iharmonic
-	endif
-endin
-
-
-; OSC: ---------------------------------------------
-gSClientIP = ""
-
-;alwayson "osc"
-pyinit
-pyruni {{
-ids = [] #  ;id-s (last parts of IP addresses of client
-clientsCount = 0
-}}
-
-; TODO! vaata, et indeks poleks kunagi -1!!!
-instr osc
-	SClientIP = ""
-	kID init 0
-	khello OSClisten giHandle, "/harmonics/hello","si",gSClientIP,kID ; id - viimane osa IP aadressist. Antud arvuna, et ei peaks enam eraldi eraldama
-	if (khello==1) then 
-	   ; salvesta ID, uuri, kas see on juba olemas, kui ei, lisa massiivi
-	  	; saada ip vatava harm. numbriga
-		;printk2 kID
-		pyassign "id", kID
-		pyrun {{
-if not (id in ids):
-	ids.append(id)
-	clientsCount += 1
-	#q.setChannelValue("clients",clientsCount)
-	harmonic = float(clientsCount)
-	new = 1.0 
-else:
-	harmonic = float(ids.index(id)+1) # kui juba registreeritud, anna osaheli number asendi järgi massiivis
-	new = 0.0
-}}	 	   		
-	    kport = 9000 + kID ; kuna nii arvestab seda android klient
-
-	    kharmonic pyeval "harmonic"
-	    chnset kharmonic,"clients"
-		knew pyeval "new"	    
-
-	    ;schedkwhen knew,0,0, nstrnum("sound")+kharmonic/100,0,-1,kharmonic
-	         
-		Sin sprintfk "i \"sendHarmonic\" 0 0.1 %d \"%s\" %d",kport,SClientIP, kharmonic
-		strset 1001, SClientIP
-		puts Sin, kharmonic
-		scoreline Sin, khello
-		
-	endif						
-	
-	kAmpNo init 0
-	kamp init 0
-	kAmpMessage OSClisten giHandle, "/harmonics/harmonic", "if", kAmpNo,kamp ; in android - do not send ID, not necessary
-	if (kAmpMessage==1 && kAmpNo>0) then
-		
-		gkAmplitude[kAmpNo-1]=kamp ; port?		
-		;printk2 	gkAmplitude[kAmpNo]	
-	endif
-	kdummy init 0
-	kattack OSClisten giHandle, "/harmonics/atack", "if", kharmonic,kdummy
-	
-	if (kattack>0) then
-		schedkwhen kattack, 0, 0, "atack", 0, 1, kharmonic ; only when kharmonic is not 0
-	endif
-endin
-
-
-instr sendHarmonic
-	
-	iport = p4
-	Shost =gSClientIP;strget 1001;p5
-	prints Shost
-	iharmonic = p6
-	print iport,iharmonic
-	OSCsend 1, Shost, iport,"/harmonics/number", "i", iharmonic
-	turnoff
-endin
-
 ; CONTROL LINES: ----------------------------------
 ;schedule "control", 0,120
 instr control ; 15 min?
-	; 1 -kiirususe jonksud: 15-5-20 pealt alla suureneb 
-	; 2 - paigal ? suunamuutused? edasip
-	; slide, kiirus kasvab
-	; kiirus aeglustub
-	; faasid 1 && 2
+	; envelope for circulating speed chenges: --------
 	istart = 15
 	ifast = 2.5
 	ifastest = 2
@@ -235,15 +100,16 @@ instr control ; 15 min?
 	gkCircleTime expseg istart, p3/8, istart, p3/16, ifast, p3/16, istart,
 	p3/4, istart, p3/4,ifastest, p3/16,ifastest,p3/8,islowest, p3/16, islowest
 	chnset gkCircleTime, "circletime"
+	; output time every second ----------------
 	ktime timeinsts
-	ktrig metro 1 ; take time every second
+	ktrig metro 1 
 	if ktrig==1 then		
 		chnset int(ktime),"time" 
 	endif
-	schedule "slide_start",islidestart,p3/4,4/3
+	schedule "slide_start",islidestart,p3/4,4/3 ; start slide
 	schedule "fade", p3+10,30,0 ; 10 sec after end of cotrol fade out int 30 seconds
 	
-	; changes in wave table
+	; changes in wave table ---------------
 	imixtime = 2
 	schedule "mixTable",p3*3/16,imixtime, giSine, giSine1
 	schedule "mixTable",p3/4,imixtime, giSine1, giSine2
@@ -288,14 +154,8 @@ endin
 instr atack ; line up and down during p3, if p3 short, like atack
 	index = p4-1 ; p4 - harmonic's number
 	printf_i "Atack %d\n", 1, p4
-	; oli:
-	;atack linseg 0,0.05,3,p3-0.05,0 ; lisa see instrumendsi "note"
-	;gaAtack[index] = gaAtack[index] + atack
-	; nüüd:
 	kline linseg  0,0.05,2.5,p3-0.05,0
-	gkAtack[index] = kline
-	;gaAtack[index] linseg 0,0.05,3,p3-0.05,0
-	
+	gkAtack[index] = kline	
 endin
 
 ;schedule "slide_start",0,60,2
@@ -304,22 +164,17 @@ instr slide_start
 	iEndInterval = p4
 	iharm = 1
 looppoint:
-    event_i "i", "slide", 0, p3, iharm, iEndInterval ; algus oli 0.05*iharm
-    ;gkFreq[iharm-1] init giBaseFreq*iharm ; does init work?
+    event_i "i", "slide", 0, p3, iharm, iEndInterval 
     loop_le	iharm,1,giHarmCount,looppoint    
 endin
 
 ;schedule "slide",0,15
-instr slide
+instr slide 
 	index = p4-1
-	iEndInterval = p5-1
-	;gkFreq[index] line giBase*(index+1),p3,giBase*(index+1)*1.5
-	
+	iEndInterval = p5-1	
 	kmod phasor 1/p3
 	kcurve expcurve kmod,index*4+1.1 ; give different curve for all harmonics
-	;printk 0.1,kcurve
 	gkFreq[index] =  giBaseFreq*(index+1)*(1+kcurve*iEndInterval)
-
 endin
 
 #define OUT #0#
@@ -327,43 +182,31 @@ endin
 
 ; schedule "fade",0,20,0
 instr fade ; p4: 0 - out 1 - in
-	
 	istart = (p4==$OUT) ? 1 : 0.0001
 	iend = (p4==$OUT) ? 0.0001 : 1
 	gkFade init istart
 	gkFade expon istart,p3,iend
-	;gkFade port iend,p3/2
-	
 endin
 
 instr note
 	iharmonic = p4
-	; 4 kanalit- kasuta vbap4 ?
-	iamp = $MAXAMP*1/iharmonic ;($MAXAMP - ($MAXAMP-$MINAMP)/giHarmCount*(iharmonic-1))/sqrt(giHarmCount)*0.5
-	iRotationSpeed = $MINSPEED + ($MAXSPEED-$MINSPEED)/giHarmCount*(iharmonic-1)
-	;print giRotationSpeed[iharmonic-1]*giCircleTime
+	iamp = $MAXAMP*1/iharmonic ; higher harmonics get smaller max. amp, otherwise sound gets too sharp
+	iRotationSpeed = $MINSPEED + ($MAXSPEED-$MINSPEED)/giHarmCount*(iharmonic-1) ; higher harmonics rotate faster
 	print iamp, iRotationSpeed
-	kphase phasor 1/gkCircleTime*iRotationSpeed;giRotationSpeed[iharmonic]
+	kphase phasor 1/gkCircleTime*iRotationSpeed
 	if (nchnls==4) then
 		kdegree = kphase * 360
 	elseif (nchnls==2) then
 		kdegree tablei kphase, giLine, 1
 		kdegree = -45+kdegree*90  
 	endif
-	;SchannelName sprintf "harm%d",iharmonic-1
 	SharmName sprintf "h%d",iharmonic
-	;WAS for OSC variant (for output): chnset gkAmplitude[iharmonic-1], SharmName ; ? *(k(gaAtack[iharmonic-1])+1)
-	;ifn =  (iharmonic == 1) ? giSine2 : giSine; -1
-	aenv linen 1,0.2,p3,0.2
+	aenv linen 1,0.2,p3,0.2 
 	
-	;kfn chnget "fn"
-	;kfn init giMixTable
-	kamp = chnget:k(SharmName) *iamp*(gkAtack[iharmonic-1]+1)*gkFade*gkLevel
+	kamp = chnget:k(SharmName) * iamp * (gkAtack[iharmonic-1]+1)* gkFade * gkLevel
 	kamp port kamp, 0.05
 	amp interp kamp
-	;asig oscilikt amp*aenv,gkFreq[iharmonic-1], kfn; gkFn;ifn
 	asig poscil amp*aenv,gkFreq[iharmonic-1], giMixTable
-	;Milleks liita: gaAtack[iharmonic-1] = 0
 	if (nchnls==4) then
 		a1, a2, a3, a4 vbap4 asig, kdegree 
 	elseif (nchnls==2) then
@@ -381,14 +224,12 @@ endin
 
 </CsInstruments>
 <CsScore>
-;i "sendHarmonic" 0 0.1 9114 "192.168.11.14" 1
-
 </CsScore>
 </CsoundSynthesizer>
 
 
 
-##### KNOBS ------------
+##### KNOBS (CsoundQt widgets ------------
 harmcount = 40
 diameter = 30
 #for row in range(harmcount/5):
@@ -1374,7 +1215,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.66500000</yValue>
+  <yValue>0.72000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1436,7 +1277,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.81000000</yValue>
+  <yValue>0.67000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1498,7 +1339,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.52500000</yValue>
+  <yValue>0.34500000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1560,7 +1401,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.78000000</yValue>
+  <yValue>1.00000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2056,7 +1897,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.66500000</yValue>
+  <yValue>0.28000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2180,7 +2021,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.88500000</yValue>
+  <yValue>0.22000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2304,7 +2145,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>1.00000000</yValue>
+  <yValue>0.17500000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2366,7 +2207,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>1.00000000</yValue>
+  <yValue>0.16000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2428,7 +2269,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.48000000</yValue>
+  <yValue>0.14500000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>

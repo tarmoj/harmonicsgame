@@ -8,6 +8,7 @@ RotationWindow::RotationWindow(int slidercount, QWidget *parent) :
     ui->setupUi(this);
     sliderCount = slidercount;
     wsServer = new WsServer(7007);
+    wsServer->setMaxHarmonic(sliderCount);
     cs = new CsEngine("rotation-piece.csd",sliderCount);
     cs->start();
     for (int i=0; i<sliderCount;i++) {
@@ -15,11 +16,13 @@ RotationWindow::RotationWindow(int slidercount, QWidget *parent) :
         sliderLabels.append(new QLabel(QString::number(i+1)));
         ui->sliderLayout->addWidget(sliders[i],0,i);
         ui->sliderLayout->addWidget(sliderLabels[i],1,i);
+        //TODO: enable changing value of slider by hand - connect slider[i] slot (valueChanged), cs, newSlidervalue <- how to forward the index?);
+        //Custom Slider class?
     }
 
     // if csound receives OSC messages and send feedback via cs object
-    connect(cs,SIGNAL(newSliderValue(int,int)),this,SLOT(setSliderValue(int,int)) );
-    connect(cs, SIGNAL(newClient(int)),this, SLOT(setClientsCount(int)));
+    //connect(cs,SIGNAL(newSliderValue(int,int)),this,SLOT(setSliderValue(int,int)) );
+    //connect(cs, SIGNAL(newClient(int)),this, SLOT(setClientsCount(int)));
     connect(cs,SIGNAL(newTime(int)),this,SLOT(setRunTime(int)));
     connect(cs,SIGNAL(newCirleTime(int)),this,SLOT(setCircleTime(int)));
 
@@ -35,6 +38,10 @@ RotationWindow::~RotationWindow()
 
 void RotationWindow::setSliderValue(int slider, int value)
 {
+    if (slider>sliderCount) { // avoid array index out of range
+        qDebug()<<"Slider number out of the range!";
+        return;
+    }
     sliders[slider-1]->setValue(value);
     cs->setChannel("h"+QString::number(slider), (MYFLT) value/100.0);
 }

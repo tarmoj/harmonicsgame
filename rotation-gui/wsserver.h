@@ -16,8 +16,9 @@ class WsServer : public QObject
 public:
     explicit WsServer(quint16 port, QObject *parent = NULL);
     ~WsServer();
-
+    int getHarmonic(QString uuid);
     void sendMessage(QWebSocket *socket, QString message);
+    void setMaxHarmonic(int number) {maxHarmonic = number;}
 Q_SIGNALS:
     void closed();
     void newConnection(int connectionsCount);
@@ -36,6 +37,7 @@ private:
     QList<QWebSocket *> m_clients;
     int lastHarmonic;
     QHash<QString, int>  clientsHash;
+    int maxHarmonic;
 
 };
 

@@ -20,7 +20,7 @@ input.button {
 
 	function init()
 	{
-		document.myform.url.value = "ws://192.168.1.199:7007";//"ws://192.168.42.52:7007";//"ws://192.168.11.199:7007"
+		document.myform.url.value = "ws://localhost:7007";//"ws://192.168.42.52:7007";//"ws://192.168.11.199:7007"
 		
 		harmonic = 0;//document.myform.harm_number.value;
 
@@ -76,6 +76,7 @@ input.button {
     if (mess_array[0] == "harmonic") {	
 	  document.getElementById("harmonic").innerHTML = mess_array[1]; //NB! innerHTML bad practice. what to do?
 	  harmonic = parseInt(mess_array[1]); // TODO: check if int.
+	  if (harmonic==-1) alert("Too many clients! Connection disconnected.");
 	  console.log("Harmonic: ",harmonic);
     }
     
