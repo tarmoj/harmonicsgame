@@ -25,7 +25,7 @@ gimode = $WS
 index = 1
 label:
 	schedule "tester", 0,3600,index
-	loop_le index, 1, 20, label
+	loop_le index, 1, 50, label
 
 ; for websocket-connection
 
@@ -78,6 +78,9 @@ instr sendAtack
 	endif
 endin
 
+instr closeSocket
+	pyruni "ws.close()"
+endin
 
 </CsInstruments>
 <CsScore>
@@ -191,6 +194,25 @@ endin
   <text>Atack</text>
   <image>/</image>
   <eventLine>i "sendAtack" 0 0.1 1</eventLine>
+  <latch>false</latch>
+  <latched>false</latched>
+ </bsbObject>
+ <bsbObject version="2" type="BSBButton">
+  <objectName>button4</objectName>
+  <x>8</x>
+  <y>109</y>
+  <width>100</width>
+  <height>30</height>
+  <uuid>{f7f12b10-60be-4bf0-b689-b0a4140b49cf}</uuid>
+  <visible>true</visible>
+  <midichan>0</midichan>
+  <midicc>0</midicc>
+  <type>event</type>
+  <pressedValue>1.00000000</pressedValue>
+  <stringvalue/>
+  <text>Close socket</text>
+  <image>/</image>
+  <eventLine>i "closeSocket" 0 0</eventLine>
   <latch>false</latch>
   <latched>false</latched>
  </bsbObject>

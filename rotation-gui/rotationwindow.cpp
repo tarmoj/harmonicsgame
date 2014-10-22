@@ -16,6 +16,7 @@ RotationWindow::RotationWindow(int slidercount, QWidget *parent) :
         sliderLabels.append(new QLabel(QString::number(i+1)));
         ui->sliderLayout->addWidget(sliders[i],0,i);
         ui->sliderLayout->addWidget(sliderLabels[i],1,i);
+        connect(sliders[i],SIGNAL(valueChanged(int)),this, SLOT(sliderMoved(int)) );
         //TODO: enable changing value of slider by hand - connect slider[i] slot (valueChanged), cs, newSlidervalue <- how to forward the index?);
         //Custom Slider class?
     }
@@ -29,6 +30,7 @@ RotationWindow::RotationWindow(int slidercount, QWidget *parent) :
     connect(wsServer, SIGNAL(newConnection(int)), this, SLOT(setClientsCount(int)));
     connect(wsServer, SIGNAL(newSliderValue(int,int)), this, SLOT(setSliderValue(int,int)));
     connect(wsServer, SIGNAL(attack(int)), this, SLOT(attack(int)));
+
 }
 
 RotationWindow::~RotationWindow()
@@ -43,7 +45,16 @@ void RotationWindow::setSliderValue(int slider, int value)
         return;
     }
     sliders[slider-1]->setValue(value);
-    cs->setChannel("h"+QString::number(slider), (MYFLT) value/100.0);
+    cs->setChannel("h"+QString::number(slider), (MYFLT) value/100.0);  // send it now throug the widget ? time lag?
+
+}
+
+void RotationWindow::sliderMoved(int value)
+{
+    QSlider *slider = qobject_cast<QSlider *>(sender());
+    int sliderno = sliders.indexOf(slider)+1;
+    cs->setChannel("h"+QString::number(sliderno), (MYFLT) value/100.0);
+
 }
 
 void RotationWindow::setClientsCount(int clientsCount)
@@ -102,3 +113,4 @@ void RotationWindow::on_resetButton_clicked()
         cs->setChannel("h"+QString::number(i+1), 0);
     }
 }
+

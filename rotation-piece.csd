@@ -36,7 +36,7 @@ giLine ftgen 108, 0, 1024, 7, 0, 512, 1, 512, 0 ; back and forth pan for stereo 
 
 gkFade init 1
 
-giBaseFreq=cpspch(5.07)
+giBaseFreq=cpspch(6.04)
 ;giRotationSpeed[] fillarray 1, 1.25,  1.5, 1.75, 2, 2.1, 2.2, 2.3
 
 gkCircleTime init 15

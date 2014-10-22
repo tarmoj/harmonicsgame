@@ -20,6 +20,7 @@ public:
 
 public slots:
     void setSliderValue(int slider, int value);
+    void sliderMoved(int value);
     void setClientsCount(int clientsCount);
     void setRunTime(int runTime);
     void setCircleTime(int newValue);
