@@ -1,3 +1,8 @@
+; Rotation-piece OR Harmonics-game
+; Interactive piece for audience and musicians (improvising agains user controlled harmonics
+; Copyright 2014 Tarmo Johannes tarmo@otsakool.edu.ee
+; LICENCE: GNU GPL v 2
+
 <CsoundSynthesizer>
 <CsOptions>
 -b1024 -B2048 
@@ -8,7 +13,7 @@
 
 sr = 44100
 ksmps = 32
-nchnls = 2;4
+nchnls = 4 ; 2
 0dbfs = 1
 
 #define MAXAMP #0.2# ; was 0.5
@@ -20,7 +25,6 @@ nchnls = 2;4
 #define MAXCLIENTS #50#
 
 ;CONSTANTS: -----------------------
-giHandle init 0;OSCinit 9000 ; osc messages about level of harmonics
 
 giSine ftgen 101, 0, 16384, 10, 1
 giSine1 ftgen 102, 0, 16384, 10, 1, 0.1
@@ -35,10 +39,7 @@ giLine ftgen 108, 0, 1024, 7, 0, 512, 1, 512, 0 ; back and forth pan for stereo 
 ;
 
 gkFade init 1
-
 giBaseFreq=cpspch(6.04)
-;giRotationSpeed[] fillarray 1, 1.25,  1.5, 1.75, 2, 2.1, 2.2, 2.3
-
 gkCircleTime init 15
 chnset 15,"circletime"
 
@@ -136,7 +137,7 @@ endin
 ; SOUND: -----------------------------------------
 
 schedule "rotate",0,9600
-instr rotate
+instr rotate ; start roatating harmoncis (instr note), check channels for global variables
 	iharm = 1
 looppoint:
     event_i "i", "note", 0, p3, iharm ; algus oli 0.05*iharm
@@ -159,7 +160,7 @@ instr atack ; line up and down during p3, if p3 short, like atack
 endin
 
 ;schedule "slide_start",0,60,2
-instr slide_start
+instr slide_start ; trigger slide start for all harmonics
 	;iHarmCount = giHarmCount
 	iEndInterval = p4
 	iharm = 1
@@ -188,7 +189,7 @@ instr fade ; p4: 0 - out 1 - in
 	gkFade expon istart,p3,iend
 endin
 
-instr note
+instr note ; makes sound and rotates the harmonic
 	iharmonic = p4
 	iamp = $MAXAMP*1/iharmonic ; higher harmonics get smaller max. amp, otherwise sound gets too sharp
 	iRotationSpeed = $MINSPEED + ($MAXSPEED-$MINSPEED)/giHarmCount*(iharmonic-1) ; higher harmonics rotate faster
@@ -229,7 +230,7 @@ endin
 
 
 
-##### KNOBS (CsoundQt widgets ------------
+##### KNOBS (for creating )CsoundQt widgets ------------
 harmcount = 40
 diameter = 30
 #for row in range(harmcount/5):
@@ -2269,7 +2270,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.14500000</yValue>
+  <yValue>0.39500000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
