@@ -10,7 +10,7 @@ QT += widgets
 #greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = rotation-gui
-INCLUDEPATH += /home/tarmo/src/cs6/include/
+INCLUDEPATH += /home/tarmo/src/cs6/include/ # not necessary when csound is installed to default place
 TEMPLATE = app
 
 #DEFINES += USE_DOUBLE
@@ -28,3 +28,4 @@ HEADERS  += rotationwindow.h \
 FORMS    += rotationwindow.ui
 
 LIBS += -L/home/tarmo/src/cs6/lib -lcsound64 -lsndfile  -ldl -lpthread -lcsnd6
+# -L/home/tarmo/src/cs6/lib not necessary when csound is installed to default place
