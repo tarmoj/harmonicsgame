@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QtWidgets>
+#include <QThread>
 #include "csengine.h"
 #include "wsserver.h"
 
@@ -47,6 +48,7 @@ private:
     int sliderCount;
     CsEngine *cs;
     WsServer *wsServer;
+	QThread *csoundThread;
 
 
 };

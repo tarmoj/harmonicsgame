@@ -9,21 +9,35 @@ RotationWindow::RotationWindow(int slidercount, QWidget *parent) :
     sliderCount = slidercount;
     wsServer = new WsServer(7007);
     wsServer->setMaxHarmonic(sliderCount);
-    cs = new CsEngine("rotation-piece.csd",sliderCount);
-    cs->start();
+
+
+	//new CsEngine("rotation-piece.csd",sliderCount);
+
+	// move csound into another thread
+	csoundThread = new QThread(this);
+	cs = new CsEngine();
+	cs->moveToThread(csoundThread);
+
+
+	connect(csoundThread, &QThread::finished, cs, &CsEngine::deleteLater);
+	connect(csoundThread, &QThread::finished, csoundThread, &QThread::deleteLater); // somehow exiting from Csound is not clear yet, the thread gets destoyed when Csoun is still running.
+	//connect(QApplication::instance(), QApplication::aboutToQuit,cs,&CsEngine::stop );
+
+	// kuskile funtsioonid startCsound, stopCsoundm thread private
+	// stopCsound -> connecct widget destoyed ja kuskil cs->stop(), csoundThread.quit(), csoundThread.wait()
+	//connect(this, &QWidget::destroyed, cs, &CsEngine::stop);
+	connect(csoundThread, &QThread::started, cs, &CsEngine::play);
+	csoundThread->start();
+
+	//cs->start();
     for (int i=0; i<sliderCount;i++) {
         sliders.append(new QSlider);
         sliderLabels.append(new QLabel(QString::number(i+1)));
         ui->sliderLayout->addWidget(sliders[i],0,i);
         ui->sliderLayout->addWidget(sliderLabels[i],1,i);
         connect(sliders[i],SIGNAL(valueChanged(int)),this, SLOT(sliderMoved(int)) );
-        //TODO: enable changing value of slider by hand - connect slider[i] slot (valueChanged), cs, newSlidervalue <- how to forward the index?);
-        //Custom Slider class?
     }
 
-    // if csound receives OSC messages and send feedback via cs object
-    //connect(cs,SIGNAL(newSliderValue(int,int)),this,SLOT(setSliderValue(int,int)) );
-    //connect(cs, SIGNAL(newClient(int)),this, SLOT(setClientsCount(int)));
     connect(cs,SIGNAL(newTime(int)),this,SLOT(setRunTime(int)));
     connect(cs,SIGNAL(newCirleTime(int)),this,SLOT(setCircleTime(int)));
 

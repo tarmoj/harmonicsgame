@@ -6,14 +6,16 @@
 <CsoundSynthesizer>
 <CsOptions>
 -b1024 -B2048 
--+rtaudio=jack -odac:system:playback_ -+jack_client=rotation-piece 
+-odac -+rtaudio=jack 
+;-+jack_client=rotation-piece 
+;-odac:system:playback_ 
 -d -g
 </CsOptions>
 <CsInstruments>
 
 sr = 44100
 ksmps = 32
-nchnls = 4 ; 2
+nchnls = 2;4 ; 2
 0dbfs = 1
 
 #define MAXAMP #0.2# ; was 0.5
@@ -22,7 +24,7 @@ nchnls = 4 ; 2
 #define MINSPEED #1#
 #define MAXSPEED #2#
 
-#define MAXCLIENTS #50#
+#define MAXCLIENTS #11#
 
 ;CONSTANTS: -----------------------
 
@@ -60,11 +62,11 @@ chn_k "level", 1
 chnset giSine,"fn"
 chnset 0.8, "level"
 
-giharm = 1
-channels:
-	Schn sprintf "h%d",giharm	
-	chn_k Schn,3
-	loop_le giharm, 1, giHarmCount, channels
+;giharm = 1 ; NB! uncomment to make sliders visible!
+;channels:
+;	Schn sprintf "h%d",giharm	
+;	chn_k Schn,3
+;	loop_le giharm, 1, giHarmCount, channels
 
 if (nchnls==4) then
 	vbaplsinit 2, 4, -30, 30, 150, -150
@@ -73,16 +75,19 @@ elseif (nchnls==2) then
 endif
 ; TEST: --------------
 seed 0
-index = 6
-label:
-	;schedule "tester", 0,3600,index
-	loop_le index, 1, 16, label
+index = 1
+;label:
+;	schedule "tester", 0,3600,index
+;	loop_le index, 1, 9, label
 
 
 instr tester
 	iharm = p4
 	kamp = 0.5+jspline(0.4,0.2,1)
 	gkAmplitude[iharm-1] = kamp
+	SharmName sprintf "h%d",iharm
+	
+	chnset kamp,SharmName
 	kout trigger kamp, 0.6,2
 	schedkwhen kout, 0, 0, "atack", 0, 0.1, iharm	
 endin
@@ -107,7 +112,7 @@ instr control ; 15 min?
 	if ktrig==1 then		
 		chnset int(ktime),"time" 
 	endif
-	schedule "slide_start",islidestart,p3/4,4/3 ; start slide
+	schedule "slide_start",islidestart,p3/4,1/2 ; start slidewa4/3
 	schedule "fade", p3+10,30,0 ; 10 sec after end of cotrol fade out int 30 seconds
 	
 	; changes in wave table ---------------
@@ -291,7 +296,7 @@ createMeters(50)
   <g>255</g>
   <b>255</b>
  </bgcolor>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm0</objectName>
   <x>21</x>
   <y>513</y>
@@ -309,7 +314,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm1</objectName>
   <x>51</x>
   <y>513</y>
@@ -327,7 +332,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm2</objectName>
   <x>81</x>
   <y>513</y>
@@ -345,7 +350,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm3</objectName>
   <x>111</x>
   <y>513</y>
@@ -363,7 +368,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm4</objectName>
   <x>141</x>
   <y>513</y>
@@ -381,7 +386,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm5</objectName>
   <x>21</x>
   <y>543</y>
@@ -393,13 +398,13 @@ createMeters(50)
   <midicc>-3</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.61257142</value>
+  <value>0.46000000</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm6</objectName>
   <x>51</x>
   <y>543</y>
@@ -417,7 +422,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm7</objectName>
   <x>81</x>
   <y>543</y>
@@ -435,7 +440,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm8</objectName>
   <x>111</x>
   <y>543</y>
@@ -453,7 +458,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm9</objectName>
   <x>141</x>
   <y>543</y>
@@ -471,7 +476,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm10</objectName>
   <x>21</x>
   <y>573</y>
@@ -489,7 +494,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm11</objectName>
   <x>51</x>
   <y>573</y>
@@ -507,7 +512,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm12</objectName>
   <x>81</x>
   <y>573</y>
@@ -525,7 +530,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm13</objectName>
   <x>111</x>
   <y>573</y>
@@ -543,7 +548,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm14</objectName>
   <x>141</x>
   <y>573</y>
@@ -561,7 +566,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm15</objectName>
   <x>21</x>
   <y>603</y>
@@ -579,7 +584,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm16</objectName>
   <x>51</x>
   <y>603</y>
@@ -597,7 +602,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm17</objectName>
   <x>81</x>
   <y>603</y>
@@ -615,7 +620,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm18</objectName>
   <x>111</x>
   <y>603</y>
@@ -633,7 +638,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm19</objectName>
   <x>141</x>
   <y>603</y>
@@ -651,7 +656,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm20</objectName>
   <x>21</x>
   <y>633</y>
@@ -669,7 +674,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm21</objectName>
   <x>51</x>
   <y>633</y>
@@ -687,7 +692,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm22</objectName>
   <x>81</x>
   <y>633</y>
@@ -705,7 +710,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm23</objectName>
   <x>111</x>
   <y>633</y>
@@ -723,7 +728,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm24</objectName>
   <x>141</x>
   <y>633</y>
@@ -741,7 +746,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm25</objectName>
   <x>21</x>
   <y>663</y>
@@ -759,7 +764,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm26</objectName>
   <x>51</x>
   <y>663</y>
@@ -777,7 +782,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm27</objectName>
   <x>81</x>
   <y>663</y>
@@ -795,7 +800,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm28</objectName>
   <x>111</x>
   <y>663</y>
@@ -813,7 +818,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm29</objectName>
   <x>141</x>
   <y>663</y>
@@ -831,7 +836,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm30</objectName>
   <x>21</x>
   <y>693</y>
@@ -849,7 +854,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm31</objectName>
   <x>51</x>
   <y>693</y>
@@ -867,7 +872,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm32</objectName>
   <x>81</x>
   <y>693</y>
@@ -885,7 +890,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm33</objectName>
   <x>111</x>
   <y>693</y>
@@ -903,7 +908,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm34</objectName>
   <x>141</x>
   <y>693</y>
@@ -921,7 +926,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm35</objectName>
   <x>21</x>
   <y>723</y>
@@ -939,7 +944,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm36</objectName>
   <x>51</x>
   <y>723</y>
@@ -957,7 +962,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm37</objectName>
   <x>81</x>
   <y>723</y>
@@ -975,7 +980,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm38</objectName>
   <x>111</x>
   <y>723</y>
@@ -993,7 +998,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBKnob">
+ <bsbObject type="BSBKnob" version="2">
   <objectName>harm39</objectName>
   <x>141</x>
   <y>723</y>
@@ -1011,7 +1016,7 @@ createMeters(50)
   <resolution>0.01000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBScope">
+ <bsbObject type="BSBScope" version="2">
   <objectName/>
   <x>5</x>
   <y>341</y>
@@ -1029,7 +1034,7 @@ createMeters(50)
   <dispy>1.00000000</dispy>
   <mode>0.00000000</mode>
  </bsbObject>
- <bsbObject version="2" type="BSBHSlider">
+ <bsbObject type="BSBHSlider" version="2">
   <objectName>circletime</objectName>
   <x>103</x>
   <y>4</y>
@@ -1041,13 +1046,13 @@ createMeters(50)
   <midicc>23</midicc>
   <minimum>1.00000000</minimum>
   <maximum>20.00000000</maximum>
-  <value>20.00000000</value>
+  <value>15.00000000</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>-1.00000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>6</x>
   <y>3</y>
@@ -1076,7 +1081,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>5</x>
   <y>70</y>
@@ -1105,7 +1110,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBDisplay">
+ <bsbObject type="BSBDisplay" version="2">
   <objectName>clients</objectName>
   <x>100</x>
   <y>71</y>
@@ -1134,7 +1139,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBButton">
+ <bsbObject type="BSBButton" version="2">
   <objectName>button85</objectName>
   <x>216</x>
   <y>69</y>
@@ -1149,11 +1154,11 @@ createMeters(50)
   <stringvalue/>
   <text>Start</text>
   <image>/</image>
-  <eventLine>i "control" 0 120</eventLine>
+  <eventLine>i "control" 0 180</eventLine>
   <latch>false</latch>
   <latched>false</latched>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>7</x>
   <y>37</y>
@@ -1182,7 +1187,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBHSlider">
+ <bsbObject type="BSBHSlider" version="2">
   <objectName>level</objectName>
   <x>104</x>
   <y>38</y>
@@ -1194,13 +1199,13 @@ createMeters(50)
   <midicc>0</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.66666669</value>
+  <value>0.87500000</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>-1.00000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor48</objectName>
   <x>5</x>
   <y>125</y>
@@ -1216,7 +1221,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.72000000</yValue>
+  <yValue>0.00000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1226,14 +1231,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>5</x>
   <y>105</y>
@@ -1262,7 +1267,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor50</objectName>
   <x>26</x>
   <y>125</y>
@@ -1278,7 +1283,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.67000000</yValue>
+  <yValue>0.70000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1288,14 +1293,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>26</x>
   <y>105</y>
@@ -1324,7 +1329,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor52</objectName>
   <x>47</x>
   <y>125</y>
@@ -1340,7 +1345,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.34500000</yValue>
+  <yValue>0.79000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1350,14 +1355,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>47</x>
   <y>105</y>
@@ -1386,7 +1391,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor54</objectName>
   <x>68</x>
   <y>125</y>
@@ -1402,7 +1407,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>1.00000000</yValue>
+  <yValue>0.57000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1412,14 +1417,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>68</x>
   <y>105</y>
@@ -1448,7 +1453,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor56</objectName>
   <x>89</x>
   <y>125</y>
@@ -1464,7 +1469,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.43000000</yValue>
+  <yValue>0.51500000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1474,14 +1479,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>89</x>
   <y>105</y>
@@ -1510,7 +1515,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor58</objectName>
   <x>110</x>
   <y>125</y>
@@ -1526,7 +1531,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.78500000</yValue>
+  <yValue>0.23500000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1536,14 +1541,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>110</x>
   <y>105</y>
@@ -1572,7 +1577,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor60</objectName>
   <x>131</x>
   <y>125</y>
@@ -1588,7 +1593,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.58500000</yValue>
+  <yValue>0.44000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1598,14 +1603,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>131</x>
   <y>105</y>
@@ -1634,7 +1639,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor62</objectName>
   <x>152</x>
   <y>125</y>
@@ -1650,7 +1655,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.34000000</yValue>
+  <yValue>0.29000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1660,14 +1665,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>152</x>
   <y>105</y>
@@ -1696,7 +1701,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor64</objectName>
   <x>173</x>
   <y>125</y>
@@ -1712,7 +1717,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.82000000</yValue>
+  <yValue>0.00000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1722,14 +1727,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>173</x>
   <y>105</y>
@@ -1758,7 +1763,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor66</objectName>
   <x>194</x>
   <y>125</y>
@@ -1774,7 +1779,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.38000000</yValue>
+  <yValue>0.87500000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1784,14 +1789,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>194</x>
   <y>105</y>
@@ -1820,7 +1825,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor68</objectName>
   <x>215</x>
   <y>125</y>
@@ -1836,7 +1841,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.82000000</yValue>
+  <yValue>0.00000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1846,14 +1851,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>215</x>
   <y>105</y>
@@ -1882,7 +1887,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor70</objectName>
   <x>236</x>
   <y>125</y>
@@ -1898,7 +1903,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.28000000</yValue>
+  <yValue>0.00000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1908,14 +1913,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>236</x>
   <y>105</y>
@@ -1944,7 +1949,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor72</objectName>
   <x>257</x>
   <y>125</y>
@@ -1960,7 +1965,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.83000000</yValue>
+  <yValue>0.00000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1970,14 +1975,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>257</x>
   <y>105</y>
@@ -2006,7 +2011,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor74</objectName>
   <x>278</x>
   <y>125</y>
@@ -2022,7 +2027,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.22000000</yValue>
+  <yValue>0.15000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2032,14 +2037,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>278</x>
   <y>105</y>
@@ -2068,7 +2073,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor76</objectName>
   <x>299</x>
   <y>125</y>
@@ -2084,7 +2089,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.84500000</yValue>
+  <yValue>0.00000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2094,14 +2099,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>299</x>
   <y>105</y>
@@ -2130,7 +2135,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor78</objectName>
   <x>320</x>
   <y>125</y>
@@ -2146,7 +2151,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.17500000</yValue>
+  <yValue>0.00000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2156,14 +2161,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>320</x>
   <y>105</y>
@@ -2192,7 +2197,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor80</objectName>
   <x>341</x>
   <y>125</y>
@@ -2208,7 +2213,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.16000000</yValue>
+  <yValue>0.00000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2218,14 +2223,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>341</x>
   <y>105</y>
@@ -2254,7 +2259,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor82</objectName>
   <x>362</x>
   <y>125</y>
@@ -2270,7 +2275,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.39500000</yValue>
+  <yValue>0.00000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2280,14 +2285,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>362</x>
   <y>105</y>
@@ -2316,7 +2321,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor84</objectName>
   <x>383</x>
   <y>125</y>
@@ -2342,14 +2347,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>383</x>
   <y>105</y>
@@ -2378,7 +2383,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor86</objectName>
   <x>404</x>
   <y>125</y>
@@ -2404,14 +2409,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>404</x>
   <y>105</y>
@@ -2440,7 +2445,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor88</objectName>
   <x>425</x>
   <y>125</y>
@@ -2456,7 +2461,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.34000000</yValue>
+  <yValue>0.00000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2466,14 +2471,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>425</x>
   <y>105</y>
@@ -2502,7 +2507,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor90</objectName>
   <x>446</x>
   <y>125</y>
@@ -2528,14 +2533,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>446</x>
   <y>105</y>
@@ -2564,7 +2569,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor92</objectName>
   <x>467</x>
   <y>125</y>
@@ -2590,14 +2595,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>467</x>
   <y>105</y>
@@ -2626,7 +2631,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor94</objectName>
   <x>488</x>
   <y>125</y>
@@ -2652,14 +2657,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>488</x>
   <y>105</y>
@@ -2688,7 +2693,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor96</objectName>
   <x>509</x>
   <y>125</y>
@@ -2704,7 +2709,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.60000000</yValue>
+  <yValue>0.00000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -2714,14 +2719,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>509</x>
   <y>105</y>
@@ -2750,7 +2755,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor98</objectName>
   <x>530</x>
   <y>125</y>
@@ -2776,14 +2781,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>530</x>
   <y>105</y>
@@ -2812,7 +2817,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor100</objectName>
   <x>551</x>
   <y>125</y>
@@ -2838,14 +2843,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>551</x>
   <y>105</y>
@@ -2874,7 +2879,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor102</objectName>
   <x>572</x>
   <y>125</y>
@@ -2900,14 +2905,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>572</x>
   <y>105</y>
@@ -2936,7 +2941,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor104</objectName>
   <x>593</x>
   <y>125</y>
@@ -2962,14 +2967,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>593</x>
   <y>105</y>
@@ -2998,7 +3003,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor106</objectName>
   <x>614</x>
   <y>125</y>
@@ -3014,7 +3019,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.60500000</yValue>
+  <yValue>0.00000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -3024,14 +3029,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>614</x>
   <y>105</y>
@@ -3060,7 +3065,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor108</objectName>
   <x>635</x>
   <y>125</y>
@@ -3086,14 +3091,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>635</x>
   <y>105</y>
@@ -3122,7 +3127,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor110</objectName>
   <x>656</x>
   <y>125</y>
@@ -3148,14 +3153,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>656</x>
   <y>105</y>
@@ -3184,7 +3189,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor112</objectName>
   <x>677</x>
   <y>125</y>
@@ -3200,7 +3205,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.49500000</yValue>
+  <yValue>0.00000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -3210,14 +3215,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>677</x>
   <y>105</y>
@@ -3246,7 +3251,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor114</objectName>
   <x>698</x>
   <y>125</y>
@@ -3272,14 +3277,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>698</x>
   <y>105</y>
@@ -3308,7 +3313,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor116</objectName>
   <x>719</x>
   <y>125</y>
@@ -3334,14 +3339,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>719</x>
   <y>105</y>
@@ -3370,7 +3375,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor118</objectName>
   <x>740</x>
   <y>125</y>
@@ -3396,14 +3401,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>740</x>
   <y>105</y>
@@ -3432,7 +3437,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor120</objectName>
   <x>761</x>
   <y>125</y>
@@ -3458,14 +3463,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>761</x>
   <y>105</y>
@@ -3494,7 +3499,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor122</objectName>
   <x>782</x>
   <y>125</y>
@@ -3520,14 +3525,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>782</x>
   <y>105</y>
@@ -3556,7 +3561,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor124</objectName>
   <x>803</x>
   <y>125</y>
@@ -3582,14 +3587,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>803</x>
   <y>105</y>
@@ -3618,7 +3623,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor126</objectName>
   <x>824</x>
   <y>125</y>
@@ -3644,14 +3649,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>824</x>
   <y>105</y>
@@ -3680,7 +3685,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor128</objectName>
   <x>845</x>
   <y>125</y>
@@ -3706,14 +3711,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>845</x>
   <y>105</y>
@@ -3742,7 +3747,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor130</objectName>
   <x>866</x>
   <y>125</y>
@@ -3768,14 +3773,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>866</x>
   <y>105</y>
@@ -3804,7 +3809,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor132</objectName>
   <x>887</x>
   <y>125</y>
@@ -3830,14 +3835,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>887</x>
   <y>105</y>
@@ -3866,7 +3871,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor134</objectName>
   <x>908</x>
   <y>125</y>
@@ -3892,14 +3897,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>908</x>
   <y>105</y>
@@ -3928,7 +3933,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor136</objectName>
   <x>929</x>
   <y>125</y>
@@ -3954,14 +3959,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>929</x>
   <y>105</y>
@@ -3990,7 +3995,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor138</objectName>
   <x>950</x>
   <y>125</y>
@@ -4016,14 +4021,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>950</x>
   <y>105</y>
@@ -4052,7 +4057,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor140</objectName>
   <x>971</x>
   <y>125</y>
@@ -4078,14 +4083,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>971</x>
   <y>105</y>
@@ -4114,7 +4119,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor142</objectName>
   <x>992</x>
   <y>125</y>
@@ -4140,14 +4145,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>992</x>
   <y>105</y>
@@ -4176,7 +4181,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor144</objectName>
   <x>1013</x>
   <y>125</y>
@@ -4202,14 +4207,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>1013</x>
   <y>105</y>
@@ -4238,7 +4243,7 @@ createMeters(50)
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBController">
+ <bsbObject type="BSBController" version="2">
   <objectName>hor146</objectName>
   <x>1034</x>
   <y>125</y>
@@ -4264,14 +4269,14 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable mode="both" group="0">false</randomizable>
+  <randomizable group="0" mode="both">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
    <b>0</b>
   </bgcolor>
  </bsbObject>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>1034</x>
   <y>105</y>

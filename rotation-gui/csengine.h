@@ -1,46 +1,33 @@
 #ifndef CSENGINE_H
 #define CSENGINE_H
 
-#include <QThread>
-#include <csound/csound.hpp>
-#include <csound/csPerfThread.hpp>
-#include <QMutex>
+#include <QObject>
+#include "csound.hpp"
 
 
-class CsEngine : public QThread
+class CsEngine : public QObject
 {
-    Q_OBJECT
-private:
-    bool mStop;
-    Csound cs;
-    char *m_csd;
-    int errorValue;
-    QString errorString;
-    int sliderCount;
-
-    //QMutex mutex;
-
+	Q_OBJECT
 public:
-    explicit CsEngine(char *csd, int slidercount=16);
-    void run();
-    void stop();
-    QString getErrorString();
-    int getErrorValue();
-
-    void setChannel(QString channel, MYFLT value);
-    void csEvent(QString event_string);
+	explicit CsEngine(QObject *parent = 0);
+	~CsEngine();
 
 
-    double getChannel(QString);
-    Csound *getCsound();
 signals:
-    void newSliderValue(int silderno, int value);
-    void newClient(int clientsCount);
-    void newTime(int newTime);
-    void newCirleTime(int newValue); // in 0..100
+	void newTime(int newTime);
+	void newCirleTime(int newValue); // in 0..100
+
 public slots:
-    //void compileOrc(QString code);
-    void restart();
+	void setChannel(QString channel, MYFLT value);
+	MYFLT getChannel(QString channel);
+	void play();
+	void stop();
+	void csEvent(QString event);
+
+private:
+	Csound * cs;
+	QString csd; // resolve later
+	bool stopNow;
 };
 
 #endif // CSENGINE_H

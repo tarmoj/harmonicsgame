@@ -1,11 +1,12 @@
 ;rotation-piece tester client
 <CsoundSynthesizer>
 <CsOptions>
+-odac -+rtaudio=null -d
 </CsOptions>
 <CsInstruments>
 
 sr = 44100 
-ksmps = 1024
+ksmps = 128
 nchnls = 2
 0dbfs = 1
 
@@ -25,7 +26,7 @@ gimode = $WS
 index = 1
 label:
 	schedule "tester", 0,3600,index
-	loop_le index, 1, 50, label
+	loop_le index, 1, 13, label
 
 ; for websocket-connection
 
@@ -102,7 +103,7 @@ endin
   <g>255</g>
   <b>255</b>
  </bgcolor>
- <bsbObject version="2" type="BSBLabel">
+ <bsbObject type="BSBLabel" version="2">
   <objectName/>
   <x>8</x>
   <y>11</y>
@@ -131,7 +132,7 @@ endin
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject version="2" type="BSBSpinBox">
+ <bsbObject type="BSBSpinBox" version="2">
   <objectName>harmonic</objectName>
   <x>100</x>
   <y>13</y>
@@ -160,7 +161,7 @@ endin
   <randomizable group="0">false</randomizable>
   <value>0</value>
  </bsbObject>
- <bsbObject version="2" type="BSBHSlider">
+ <bsbObject type="BSBHSlider" version="2">
   <objectName>amp</objectName>
   <x>7</x>
   <y>54</y>
@@ -178,7 +179,7 @@ endin
   <resolution>-1.00000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject version="2" type="BSBButton">
+ <bsbObject type="BSBButton" version="2">
   <objectName>atack</objectName>
   <x>103</x>
   <y>52</y>
@@ -197,7 +198,7 @@ endin
   <latch>false</latch>
   <latched>false</latched>
  </bsbObject>
- <bsbObject version="2" type="BSBButton">
+ <bsbObject type="BSBButton" version="2">
   <objectName>button4</objectName>
   <x>8</x>
   <y>109</y>
@@ -214,7 +215,7 @@ endin
   <image>/</image>
   <eventLine>i "closeSocket" 0 0</eventLine>
   <latch>false</latch>
-  <latched>false</latched>
+  <latched>true</latched>
  </bsbObject>
 </bsbPanel>
 <bsbPresets>
