@@ -4,6 +4,7 @@ Licence: GPL -->
 <html>
   <head>
     <meta content="text/html; charset=utf-8" http-equiv="content-type">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.5, user-scalable=0" />
     <title>Ülemhelimäng</title>
     <meta content="Tarmo Johannes" name="author">
     <meta content="Kasutajaliides helimängule Ülemhelimäng" name="description">
@@ -18,9 +19,9 @@ body
         font-size:14px;
         background-color: black; 
         color: white; 
-        /*max-width: 440px; */
+		margin-left: 4%;
+        max-width: 440px; 
         width:100%;
-        padding:3%;
         overflow-x:hidden;
     } 
 
@@ -87,7 +88,7 @@ width: 20px;
 
 	function init()
 	{
-		document.myform.url.value = "ws://192.168.1.199:7007";//"ws://192.168.42.52:7007";//"ws://192.168.11.199:7007"
+		document.myform.url.value = "ws://192.168.1.199:7007"
 		
 		harmonic = 0;//document.myform.harm_number.value;
 

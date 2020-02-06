@@ -26,7 +26,7 @@ gimode = $WS
 index = 1
 label:
 	schedule "tester", 0,3600,index
-	loop_le index, 1, 13, label
+	loop_le index, 1, 30, label
 
 ; for websocket-connection
 
@@ -95,7 +95,7 @@ endin
  <x>0</x>
  <y>0</y>
  <width>203</width>
- <height>82</height>
+ <height>139</height>
  <visible>true</visible>
  <uuid/>
  <bgcolor mode="nobackground">
@@ -103,7 +103,7 @@ endin
   <g>255</g>
   <b>255</b>
  </bgcolor>
- <bsbObject type="BSBLabel" version="2">
+ <bsbObject version="2" type="BSBLabel">
   <objectName/>
   <x>8</x>
   <y>11</y>
@@ -132,7 +132,7 @@ endin
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
  </bsbObject>
- <bsbObject type="BSBSpinBox" version="2">
+ <bsbObject version="2" type="BSBSpinBox">
   <objectName>harmonic</objectName>
   <x>100</x>
   <y>13</y>
@@ -161,7 +161,7 @@ endin
   <randomizable group="0">false</randomizable>
   <value>0</value>
  </bsbObject>
- <bsbObject type="BSBHSlider" version="2">
+ <bsbObject version="2" type="BSBHSlider">
   <objectName>amp</objectName>
   <x>7</x>
   <y>54</y>
@@ -179,7 +179,7 @@ endin
   <resolution>-1.00000000</resolution>
   <randomizable group="0">false</randomizable>
  </bsbObject>
- <bsbObject type="BSBButton" version="2">
+ <bsbObject version="2" type="BSBButton">
   <objectName>atack</objectName>
   <x>103</x>
   <y>52</y>
@@ -198,7 +198,7 @@ endin
   <latch>false</latch>
   <latched>false</latched>
  </bsbObject>
- <bsbObject type="BSBButton" version="2">
+ <bsbObject version="2" type="BSBButton">
   <objectName>button4</objectName>
   <x>8</x>
   <y>109</y>
@@ -215,7 +215,7 @@ endin
   <image>/</image>
   <eventLine>i "closeSocket" 0 0</eventLine>
   <latch>false</latch>
-  <latched>true</latched>
+  <latched>false</latched>
  </bsbObject>
 </bsbPanel>
 <bsbPresets>
