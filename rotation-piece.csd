@@ -18,7 +18,11 @@ ksmps = 32
 nchnls = 2; 4 ; 2
 0dbfs = 1
 
-#define MAXAMP #0.2# ; was 0.5
+;;channels
+chn_k "shape3",3
+chn_k "shape1",3
+
+#define MAXAMP #0.5# ; was 0.5
 #define MINAMP # $MAXAMP*0.25 #
 
 #define MINSPEED #1#
@@ -143,11 +147,11 @@ endin
 
 schedule "rotate",0,9600
 instr rotate ; start roatating harmoncis (instr note), check channels for global variables
-	iharm = 1
-looppoint:
-    event_i "i", "note", 0, p3, iharm ; algus oli 0.05*iharm
-    ;gkFreq[iharm-1] init giBaseFreq*iharm ; does init work?
-    loop_le	iharm,1,giHarmCount,looppoint
+;	iharm = 1
+;looppoint:
+;    event_i "i", "note", 0, p3, iharm ; algus oli 0.05*iharm
+;    ;gkFreq[iharm-1] init giBaseFreq*iharm ; does init work?
+;    loop_le	iharm,1,giHarmCount,looppoint
     
     gkCircleTime chnget "circletime"
     gkLevel chnget "level"
@@ -159,9 +163,22 @@ endin
 ;event_i "i", "atack", 0, 0.5, 16, 0.2
 instr atack ; line up and down during p3, if p3 short, like atack
 	index = p4-1 ; p4 - harmonic's number
-	printf_i "Atack %d\n", 1, p4
-	kline linseg  0,0.05,2.5,p3-0.05,0
-	gkAtack[index] = kline	
+	iharmonic = p4
+	
+	SShapeName sprintf "shape%d", iharmonic
+	
+	iShape chnget SShapeName
+	print iShape
+	instrno = nstrnum("note")+iharmonic/100
+	print instrno, active:i(instrno)
+	if (iShape==1 && active(instrno)>0 ) then		
+		printf_i "Atack %d\n", 1, iharmonic
+		kline linseg  0,0.05,2.5,p3-0.05,0
+		gkAtack[index] = kline			
+	else 
+		schedule instrno, 0,1, iharmonic
+		turnoff
+	endif
 endin
 
 ;schedule "slide_start",0,60,2
@@ -194,20 +211,66 @@ instr fade ; p4: 0 - out 1 - in
 	gkFade expon istart,p3,iend
 endin
 
+
 instr note ; makes sound and rotates the harmonic
 	iharmonic = p4
 	iamp = $MAXAMP*1/sqrt(iharmonic) ; higher harmonics get smaller max. amp, otherwise sound gets too sharp
 	iRotationSpeed = $MINSPEED + ($MAXSPEED-$MINSPEED)/giHarmCount*(iharmonic-1) ; higher harmonics rotate faster
 	print iamp, iRotationSpeed
-	kphase phasor 1/gkCircleTime*iRotationSpeed
-	if (nchnls==4) then
-		kdegree = kphase * 360
-	elseif (nchnls==2) then
-		kdegree tablei kphase, giLine, 1
-		kdegree = -45+kdegree*90  
-	endif
+
 	SharmName sprintf "h%d",iharmonic
-	aenv linen 1,0.2,p3,0.2 
+	SShapeName sprintf "shape%d",iharmonic
+	iShape chnget SShapeName
+	printf_i "Shape: %s %f\n", 1, SShapeName, iShape
+	
+	; find envelope according to Shape:
+	iDuration = 0.3 + iShape * 4
+	p3 = iDuration
+	
+	iAttack = iShape * iDuration/2  + 0.005
+	iDecay = iDuration -  iAttack
+	
+	if (iShape==1) then
+		p3 = -1
+		iAttack = 4
+		iDecay = 8
+		
+		if (trigger:k(chnget:k(SShapeName), 0.99, 1)==1) then ; if falls below 0.99
+			printf "STOP sound", timeinstk()
+			turnoff 
+		endif
+		
+	endif
+	
+	print iAttack, iDecay, p3
+	
+	; if indefinte pitch and shaper slider is moved away from 1, turn off
+	
+	
+	
+	; panning (moving in space)
+	
+	if (p3>0) then
+		kdegree init random:i( -45, 45 )
+	else 
+		kphase phasor 1/gkCircleTime*iRotationSpeed
+		if (nchnls==4) then
+			kdegree = kphase * 360
+		elseif (nchnls==2) then
+			kdegree tablei kphase, giLine, 1
+			kdegree = -45+kdegree*90  
+		endif
+	endif
+	
+	if (iShape<0.5) then
+		aenv expseg 0.0001, iAttack, 1, iDecay, 0.0001
+	elseif (iShape>=0.5 && iShape < 0.99) then
+		aenv adsr iAttack, 0, 1, iDecay ;linen 1, iAttack, p3, iDecay
+	else 
+		aenv linenr 1, 2, 2, 0.001
+	endif   
+	;aEnvelope *= 1 + gaAttack
+	 
 	
 	kamp = chnget:k(SharmName) * iamp * (gkAtack[iharmonic-1]+1)* gkFade * gkLevel
 	kamp port kamp, 0.05
@@ -1046,7 +1109,7 @@ createMeters(50)
   <midicc>23</midicc>
   <minimum>1.00000000</minimum>
   <maximum>20.00000000</maximum>
-  <value>15.00000000</value>
+  <value>2.31944444</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>-1.00000000</resolution>
@@ -1199,7 +1262,7 @@ createMeters(50)
   <midicc>0</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.67361111</value>
+  <value>0.29861111</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>-1.00000000</resolution>
@@ -1221,7 +1284,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.56500000</yValue>
+  <yValue>0.66000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1283,7 +1346,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.40500000</yValue>
+  <yValue>0.44500000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1345,7 +1408,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.51500000</yValue>
+  <yValue>0.72000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -4304,6 +4367,72 @@ createMeters(50)
   <bordermode>noborder</bordermode>
   <borderradius>1</borderradius>
   <borderwidth>1</borderwidth>
+ </bsbObject>
+ <bsbObject version="2" type="BSBVSlider">
+  <objectName>shape3</objectName>
+  <x>397</x>
+  <y>391</y>
+  <width>20</width>
+  <height>100</height>
+  <uuid>{7914f8ae-687b-43cd-b07d-4d15dc3e5f94}</uuid>
+  <visible>true</visible>
+  <midichan>0</midichan>
+  <midicc>0</midicc>
+  <minimum>0.00000000</minimum>
+  <maximum>1.00000000</maximum>
+  <value>0.29000000</value>
+  <mode>lin</mode>
+  <mouseControl act="jump">continuous</mouseControl>
+  <resolution>-1.00000000</resolution>
+  <randomizable group="0">false</randomizable>
+ </bsbObject>
+ <bsbObject version="2" type="BSBLabel">
+  <objectName/>
+  <x>427</x>
+  <y>399</y>
+  <width>80</width>
+  <height>25</height>
+  <uuid>{fe1c4fb0-bc6d-4f77-846b-e0fe40907f36}</uuid>
+  <visible>true</visible>
+  <midichan>0</midichan>
+  <midicc>-3</midicc>
+  <label>Test shape 1</label>
+  <alignment>left</alignment>
+  <font>Arial</font>
+  <fontsize>10</fontsize>
+  <precision>3</precision>
+  <color>
+   <r>0</r>
+   <g>0</g>
+   <b>0</b>
+  </color>
+  <bgcolor mode="nobackground">
+   <r>255</r>
+   <g>255</g>
+   <b>255</b>
+  </bgcolor>
+  <bordermode>noborder</bordermode>
+  <borderradius>1</borderradius>
+  <borderwidth>1</borderwidth>
+ </bsbObject>
+ <bsbObject version="2" type="BSBButton">
+  <objectName>button150</objectName>
+  <x>454</x>
+  <y>423</y>
+  <width>100</width>
+  <height>30</height>
+  <uuid>{66b1932f-ecba-467f-9ecd-ecc6d5614b3e}</uuid>
+  <visible>true</visible>
+  <midichan>0</midichan>
+  <midicc>0</midicc>
+  <type>event</type>
+  <pressedValue>1.00000000</pressedValue>
+  <stringvalue/>
+  <text>Atack 3</text>
+  <image>/</image>
+  <eventLine>i "atack" 0 1 3</eventLine>
+  <latch>false</latch>
+  <latched>true</latched>
  </bsbObject>
 </bsbPanel>
 <bsbPresets>

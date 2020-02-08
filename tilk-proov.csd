@@ -188,7 +188,7 @@ endin
   <image>/</image>
   <eventLine>i "Nupp" 0 1</eventLine>
   <latch>false</latch>
-  <latched>true</latched>
+  <latched>false</latched>
  </bsbObject>
 </bsbPanel>
 <bsbPresets>
