@@ -21,6 +21,7 @@ public:
 
 public slots:
     void setSliderValue(int slider, int value);
+	void setShapeValue(int slider, int value);
     void sliderMoved(int value);
     void setClientsCount(int clientsCount);
     void setRunTime(int runTime);
@@ -28,6 +29,9 @@ public slots:
     int getSliderCount() {return sliderCount;}
 
     void attack(int harmonic);
+
+	virtual void closeEvent(QCloseEvent *event);
+
 private slots:
     void on_cirleTimeSlider_valueChanged(int value);
 
@@ -43,7 +47,7 @@ private slots:
 
 private:
     Ui::RotationWindow *ui;
-    QList <QSlider *> sliders;
+	QList <QSlider *> sliders, shapeSliders;
     QList <QLabel *> sliderLabels;
     int sliderCount;
     CsEngine *cs;

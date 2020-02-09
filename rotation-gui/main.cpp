@@ -5,7 +5,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    int slidercount = 50;//20;
+	int slidercount = 30;//50;
     qDebug()<<"Usage: rotation-gui [--sliders | -s <slidercount> ]"<<endl;
     if (argc>1) {
         if (QString(argv[1]).startsWith("--sliders") || QString(argv[1]).startsWith("-s")) {

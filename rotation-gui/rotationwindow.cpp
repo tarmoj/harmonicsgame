@@ -21,7 +21,7 @@ RotationWindow::RotationWindow(int slidercount, QWidget *parent) :
 
 	connect(csoundThread, &QThread::finished, cs, &CsEngine::deleteLater);
 	connect(csoundThread, &QThread::finished, csoundThread, &QThread::deleteLater); // somehow exiting from Csound is not clear yet, the thread gets destoyed when Csoun is still running.
-	//connect(QApplication::instance(), QApplication::aboutToQuit,cs,&CsEngine::stop );
+	connect(QApplication::instance(), &QApplication::aboutToQuit,cs,&CsEngine::stop ); // does not work here...
 
 	// kuskile funtsioonid startCsound, stopCsoundm thread private
 	// stopCsound -> connecct widget destoyed ja kuskil cs->stop(), csoundThread.quit(), csoundThread.wait()
@@ -29,13 +29,18 @@ RotationWindow::RotationWindow(int slidercount, QWidget *parent) :
 	connect(csoundThread, &QThread::started, cs, &CsEngine::play);
 	csoundThread->start();
 
-	//cs->start();
+	//fill sliderLayout:
+	ui->sliderLayout->addWidget(new QLabel("Amp"),0,0);
+	ui->sliderLayout->addWidget(new QLabel("Shape"),1,0);
     for (int i=0; i<sliderCount;i++) {
         sliders.append(new QSlider);
+		shapeSliders.append(new QSlider);
         sliderLabels.append(new QLabel(QString::number(i+1)));
-        ui->sliderLayout->addWidget(sliders[i],0,i);
-        ui->sliderLayout->addWidget(sliderLabels[i],1,i);
+		ui->sliderLayout->addWidget(sliders[i],0,i+1);
+		ui->sliderLayout->addWidget(shapeSliders[i],1,i+1);
+		ui->sliderLayout->addWidget(sliderLabels[i],2,i+1);
         connect(sliders[i],SIGNAL(valueChanged(int)),this, SLOT(sliderMoved(int)) );
+		connect(shapeSliders[i],SIGNAL(valueChanged(int)),this, SLOT(sliderMoved(int)) );
     }
 
     connect(cs,SIGNAL(newTime(int)),this,SLOT(setRunTime(int)));
@@ -43,6 +48,8 @@ RotationWindow::RotationWindow(int slidercount, QWidget *parent) :
 
     connect(wsServer, SIGNAL(newConnection(int)), this, SLOT(setClientsCount(int)));
     connect(wsServer, SIGNAL(newSliderValue(int,int)), this, SLOT(setSliderValue(int,int)));
+	connect(wsServer, SIGNAL(newShapeValue(int,int)), this, SLOT(setShapeValue(int,int)));
+
     connect(wsServer, SIGNAL(attack(int)), this, SLOT(attack(int)));
 
 }
@@ -60,6 +67,19 @@ void RotationWindow::setSliderValue(int slider, int value)
     }
     sliders[slider-1]->setValue(value);
     cs->setChannel("h"+QString::number(slider), (MYFLT) value/100.0);  // send it now throug the widget ? time lag?
+
+}
+
+void RotationWindow::setShapeValue(int slider, int value)
+{
+	if (slider>sliderCount) { // avoid array index out of range
+		qDebug()<<"Slider number out of the range!";
+		return;
+	}
+	shapeSliders[slider-1]->setValue(value);
+	//qDebug() << "Shape to Csound " << slider << " " << value;
+	cs->setChannel("shape"+QString::number(slider), (MYFLT) value/100.0);
+
 
 }
 
@@ -112,7 +132,16 @@ void RotationWindow::on_outButton_clicked()
 }
 
 void RotationWindow::attack(int harmonic) {
-    cs->csEvent("i \"atack\" 0 1 " + QString::number(harmonic));
+	cs->csEvent("i \"atack\" 0 1 " + QString::number(harmonic));
+}
+
+void RotationWindow::closeEvent(QCloseEvent *event)
+{
+	qDebug() << Q_FUNC_INFO;
+	cs->stop();
+	cs->deleteLater();
+	//csoundThread->exit();
+	QMainWindow::closeEvent(event);
 }
 
 void RotationWindow::on_levelSlider_sliderMoved(int position)

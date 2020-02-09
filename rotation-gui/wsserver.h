@@ -22,8 +22,9 @@ public:
 Q_SIGNALS:
     void closed();
     void newConnection(int connectionsCount);
-    void newSliderValue(int,int);
-    void attack(int);
+	void newSliderValue(int,int);
+	void newShapeValue(int,int);
+	void attack(int);
 
 
 private Q_SLOTS:

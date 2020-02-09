@@ -87,6 +87,11 @@ void WsServer::processTextMessage(QString message)
         emit newSliderValue(messageParts[1].toInt(), int(messageParts[2].toFloat()*100)  );
     }
 
+	if (message.startsWith("shape ")) { // comes as shape <no> <value>
+		qDebug()<<"Shape: "<<messageParts[1]<<" value: "<< messageParts[2];
+		emit newShapeValue(messageParts[1].toInt(), int(messageParts[2].toFloat()*100)  );
+	}
+
     if (message.startsWith("attack")) {
         //qDebug()<<"Harmonic: "<<messageParts[1]<<" attack!";
         emit attack(messageParts[1].toInt());
