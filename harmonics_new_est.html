@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type">
+        <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7, user-scalable=no />
+
+    <title>Ülemhelimäng</title>
+    <meta content="Tarmo Johannes" id="author">
+	
+	<link type="text/css" rel="stylesheet" href="audience.css">
+	<style >
+	body {
+-webkit-touch-callout:none;
+-webkit-user-select:none;
+-khtml-user-select:none;
+-moz-user-select:none;
+-ms-user-select:none;
+user-select:none;
+-o-user-select: none;
+-webkit-tap-highlight-color:rgba(0,0,0,0);
+	}
+	</style>
+    <!-- <script src="ws-functions.js"></script> websocket functions -->
+     <!--  <script src="server_address.js"></script> default address of the ws server -->
+    <script>
+    
+
+    function onMessage(evt) // WS function -  probably not needed here.
+    {
+            // does server send any messages at all?
+            writeToScreen("Message from server: " + evt.data + '\n');
+            var mess_array = evt.data.split(" ");
+            
+           
+    }
+	
+	var uuid;
+	var harmonic = 0;  // number of the harmonic controlled
+
+	function init()
+	{
+		document.getElementById("url").value = "ws://192.168.1.164:7007"
+		
+		harmonic = 0;
+
+		doConnect();
+	}
+	
+
+  function doConnect()
+  {
+    websocket = new WebSocket( document.getElementById("url").value);
+    websocket.onopen = function(evt) { onOpen(evt) };
+    websocket.onclose = function(evt) { onClose(evt) };
+    websocket.onmessage = function(evt) { onMessage(evt) };
+    websocket.onerror = function(evt) { onError(evt) };
+  }
+
+  function onOpen(evt)
+  {
+    //document.getElementById("connected").innerHTML = "JAH";
+	document.getElementById("connectButton").disabled = true;
+	document.getElementById("connectButton").innerHTML = "Ühendatud";
+    doSend("connectionData " +  document.getElementById("amplitude").value + " "  + document.getElementById("shape").value);
+  }
+
+  function onClose(evt)
+  {
+	//document.getElementById("connected").innerHTML = "EI";
+	document.getElementById("connectButton").disabled = false;
+	document.getElementById("connectButton").innerHTML = "Ühenda";
+	document.getElementById("harmonic").innerHTML = "0";
+	harmonic = 0;
+  }
+
+  function onMessage(evt)
+  {
+    console.log("Message: " + evt.data + '\n');
+    var mess_array = evt.data.split(" ");
+    console.log(mess_array[0]);
+    if (mess_array[0] == "harmonic") {	
+	  document.getElementById("harmonic").innerHTML = mess_array[1]; //NB! innerHTML bad practice. what to do?
+	  harmonic = parseInt(mess_array[1]); // TODO: check if int.
+	  if (harmonic==-1) alert("Liiga palju ühendusi!");
+	  //console.log("Harmonic: ",harmonic);
+    }
+    
+  }
+
+  function onError(evt)
+  {
+    console.log('Error: ' + evt.data + '\n');
+    websocket.close();
+  }
+
+  function doSend(message)
+  {
+    //console.log("sent: " + message + '\n'); 
+    websocket.send(message);
+  }
+
+	function sendAttack() {
+		console.log("attack!");
+		if (harmonic>0) {
+			doSend("attack "+harmonic.toString());
+			document.getElementById("attack").disabled = true; // don't let to play again for some time
+			setTimeout(function(){ document.getElementById("attack").disabled = false;},500);
+		} else {
+			console.log("Not connected to the server?");
+			//alert("Harmonic number not set!\nProbably not connected to server.");
+		}
+	}
+
+   window.addEventListener("load", init, false);
+
+   function doDisconnect() {
+      websocket.close();
+   }
+      
+      function setHarmonic(value) {
+        harmonic = value;
+        console.log("Harmonic: ",harmonic);
+      
+      }
+	
+	
+	
+	
+	function newAmplitude(value) {
+		if (harmonic>0)
+			doSend("harmonic " + harmonic.toString() + " " +  document.getElementById("amplitude").value);
+	}
+	
+	function newShape(value) {
+		if (harmonic>0)
+			doSend("shape " + harmonic.toString() + " " +  document.getElementById("shape").value);
+	}
+	
+	
+	
+	// stop pinch zooming and on double click from: https://stackoverflow.com/questions/37808180/disable-viewport-zooming-ios-10-safari
+	document.addEventListener('touchmove', function (event) {
+		if (event.scale !== 1) { 
+			event.preventDefault(); 
+		}
+	}, false);
+
+	var lastTouchEnd = 0;
+	document.addEventListener('touchend', function (event) {
+		var now = (new Date()).getTime();
+		if (now - lastTouchEnd <= 300) {
+			event.preventDefault();
+		}
+		lastTouchEnd = now;
+	}, false);
+    
+    
+    </script>
+
+  </head>
+  <body>
+	<h1>Ülemhelimäng</h1>
+	 
+	Teie osaheli: <label id="harmonic">0</label>
+	<br>
+	<br>
+	<table style="text-align:center; <!--border: 1px solid white-->">
+		<tr>
+			<td>VALI</td>
+			<td>VIKERKAAR</td>
+		
+		</tr>
+		
+		<tr style="height:140px; text-align:center;">
+			<td><input id="amplitude" type="range" class="range" min=0 max=1 value=0 step=0.01 oninput='newAmplitude(this.value);'></td>
+			<td><input id="shape" type="range" class="range" min=0 max=1 value=0 step=0.01 oninput='newShape(this.value);'> </td>
+		
+		</tr>
+	
+		<tr>
+			<td>VAIKUS</td>
+			<td>TILK</td>
+		
+		</tr>
+		
+		<tr>
+			<td><i>Helitugevus</i> </td>
+			<td><i>Heli kuju</i></td>
+		
+		</tr>
+		<tr>
+			<td  style="text-align:center">
+			<button type="button" id="attack" onclick="sendAttack();">Mängi</button>
+			</td>
+		<tr>
+		
+		
+	</table>
+	<br>
+	
+			
+	<!--<form name="myform">-->
+    <br>
+    
+    Server: <input value="ws://127.0.0.1:7007" id="url" type="text" >
+    <button type="button" id="connectButton" onclick="doConnect();">Ühenda</button>
+    <br>
+    <br>
+     <p><textarea id="outputtext" rows="5" cols="30" readonly hidden></textarea> </p>
+     
+	
+	
+<!--	</form>-->
+	
+  </body>
+</html>
