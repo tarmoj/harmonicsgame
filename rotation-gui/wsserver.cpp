@@ -67,19 +67,24 @@ void WsServer::processTextMessage(QString message)
 
 
     QStringList messageParts = message.split(" ");
-    if (message.startsWith("harmonic_for")) {
+	if (message.startsWith("connectionData") && messageParts.size()>=3) { // now comes in as 'connectionData <amp> <shape>' (both 0..1)
         // check if the uui of the client is already known and the harmonic set
 
-        QString uuid = messageParts[1];
-        int harmonic = getHarmonic(uuid);
+		QString ipAddress = pClient->peerAddress().toString();
+		int harmonic = getHarmonic(ipAddress);
 
         pClient->sendTextMessage("harmonic "+ QString::number(harmonic)); // TODO: vastavalt
         if (harmonic==-1) { // there are already too many clients
             m_clients.removeAll(pClient);
             pClient->deleteLater();
             emit newConnection(m_clients.count());
-        }
-        //return;
+		} else {
+			int amp = int (messageParts[1].toDouble()*100);
+			int shape = int(messageParts[2].toDouble()*100);
+			emit newSliderValue(harmonic, amp);
+			emit newShapeValue(harmonic, shape);
+		}
+		//return;
     }
 
     if (message.startsWith("harmonic ")) {

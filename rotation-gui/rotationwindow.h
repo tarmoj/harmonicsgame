@@ -45,6 +45,8 @@ private slots:
 
     void on_resetButton_clicked();
 
+	void on_playAllButton_clicked();
+
 private:
     Ui::RotationWindow *ui;
 	QList <QSlider *> sliders, shapeSliders;

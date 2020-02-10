@@ -22,7 +22,7 @@ nchnls = 2; 4 ; 2
 chn_k "shape3",3
 chn_k "shape1",3
 
-#define MAXAMP #0.5# ; was 0.5
+#define MAXAMP #0.3# ; was 0.5
 #define MINAMP # $MAXAMP*0.25 #
 
 #define MINSPEED #1#
@@ -51,6 +51,7 @@ chnset 15,"circletime"
 
 giHarmCount init $MAXCLIENTS;20
 print giHarmCount
+gkIsPlaying[] init giHarmCount+1
 gkAmplitude[] init giHarmCount+1
 gkAtack[] init giHarmCount+1
 gkFreq[] genarray_i giBaseFreq, giBaseFreq*giHarmCount, giBaseFreq
@@ -159,8 +160,12 @@ instr rotate ; start roatating harmoncis (instr note), check channels for global
     ; TODO: gkLevel chnget "level", gkFade
 endin
 
-; chnset 1, "shape5"
+
+
+
+; chnset 0.8, "shape5"
 ;event_i "i", "atack", 0, 0.5, 5, 0.2
+giAttackAmp = 1.8
 instr atack ; line up and down during p3, if p3 short, like atack
 	index = p4-1 ; p4 - harmonic's number
 	iharmonic = p4
@@ -171,9 +176,9 @@ instr atack ; line up and down during p3, if p3 short, like atack
 	print iShape
 	instrno = nstrnum("note")+iharmonic/100
 	print instrno, active:i(instrno)
-	if (iShape>=0.99 && active(instrno)>0 ) then		
+	if (iShape>=0.99 && i(gkIsPlaying,iharmonic) >0 ) then		
 		printf_i "Atack %d\n", 1, iharmonic
-		kline linseg  0,0.05,2.5,p3-0.05,0
+		kline linseg  0,0.05,giAttackAmp,p3-0.05,0
 		gkAtack[index] = kline			
 	else 
 		schedule instrno, 0,1, iharmonic
@@ -214,6 +219,7 @@ endin
 
 instr note ; makes sound and rotates the harmonic
 	iharmonic = p4
+	gkIsPlaying[iharmonic] init 1 ; flag to show that this harmonic is playing
 	iamp = $MAXAMP*1/sqrt(iharmonic) ; higher harmonics get smaller max. amp, otherwise sound gets too sharp
 	iRotationSpeed = $MINSPEED + ($MAXSPEED-$MINSPEED)/giHarmCount*(iharmonic-1) ; higher harmonics rotate faster
 	print iamp, iRotationSpeed
@@ -224,11 +230,12 @@ instr note ; makes sound and rotates the harmonic
 	printf_i "Shape: %s %f\n", 1, SShapeName, iShape
 	
 	; find envelope according to Shape:
-	iDuration = 0.3 + iShape * 4
+	iDuration = 0.5 + iShape * 4
 	p3 = iDuration
 	
 	iAttack = iShape * iDuration/2  + 0.005
 	iDecay = iDuration -  iAttack
+	
 	
 	if (iShape==1) then
 		p3 = -1
@@ -264,8 +271,10 @@ instr note ; makes sound and rotates the harmonic
 	
 	if (iShape<0.5) then
 		aenv expseg 0.0001, iAttack, 1, iDecay, 0.0001
+		aenv *= giAttackAmp ; the same as attack in instr attack
 	elseif (iShape>=0.5 && iShape < 0.99) then
 		aenv adsr iAttack, 0, 1, iDecay ;linen 1, iAttack, p3, iDecay
+		aenv *= giAttackAmp
 	else 
 		aenv linenr 1, 2, 2, 0.001
 	endif   
@@ -286,6 +295,10 @@ instr note ; makes sound and rotates the harmonic
 		outs a1,a2
 	elseif (nchnls==4) then
 		outq a1,a2,a4,a3 ; check, if back speakers right!
+	endif
+	
+	if (release()==1) then
+		gkIsPlaying[iharmonic] = 0
 	endif
 	
 endin
@@ -1284,7 +1297,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.77500000</yValue>
+  <yValue>0.79500000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1294,7 +1307,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -1356,7 +1369,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -1408,7 +1421,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.92500000</yValue>
+  <yValue>0.38500000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1418,7 +1431,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -1480,7 +1493,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -1532,7 +1545,7 @@ createMeters(50)
   <yMin>0.00000000</yMin>
   <yMax>1.00000000</yMax>
   <xValue>0.00000000</xValue>
-  <yValue>0.59500000</yValue>
+  <yValue>0.87000000</yValue>
   <type>fill</type>
   <pointsize>1</pointsize>
   <fadeSpeed>0.00000000</fadeSpeed>
@@ -1542,7 +1555,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -1604,7 +1617,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -1666,7 +1679,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -1728,7 +1741,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -1790,7 +1803,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -1852,7 +1865,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -1914,7 +1927,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -1976,7 +1989,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -2038,7 +2051,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -2100,7 +2113,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -2162,7 +2175,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -2224,7 +2237,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -2286,7 +2299,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -2348,7 +2361,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -2410,7 +2423,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -2472,7 +2485,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -2534,7 +2547,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -2596,7 +2609,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -2658,7 +2671,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -2720,7 +2733,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -2782,7 +2795,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -2844,7 +2857,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -2906,7 +2919,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -2968,7 +2981,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -3030,7 +3043,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -3092,7 +3105,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -3154,7 +3167,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -3216,7 +3229,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -3278,7 +3291,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -3340,7 +3353,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -3402,7 +3415,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -3464,7 +3477,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -3526,7 +3539,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -3588,7 +3601,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -3650,7 +3663,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -3712,7 +3725,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -3774,7 +3787,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -3836,7 +3849,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -3898,7 +3911,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -3960,7 +3973,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -4022,7 +4035,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -4084,7 +4097,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -4146,7 +4159,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -4208,7 +4221,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -4270,7 +4283,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -4332,7 +4345,7 @@ createMeters(50)
    <g>234</g>
    <b>0</b>
   </color>
-  <randomizable group="0" mode="both">false</randomizable>
+  <randomizable mode="both" group="0">false</randomizable>
   <bgcolor>
    <r>0</r>
    <g>0</g>
@@ -4380,7 +4393,7 @@ createMeters(50)
   <midicc>0</midicc>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
-  <value>0.29000000</value>
+  <value>0.00000000</value>
   <mode>lin</mode>
   <mouseControl act="jump">continuous</mouseControl>
   <resolution>-1.00000000</resolution>

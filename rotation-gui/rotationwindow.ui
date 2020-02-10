@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>562</width>
-    <height>371</height>
+    <width>549</width>
+    <height>416</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -123,6 +123,13 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QPushButton" name="playAllButton">
+        <property name="text">
+         <string>Play all</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>
@@ -192,7 +199,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>562</width>
+     <width>549</width>
      <height>39</height>
     </rect>
    </property>

@@ -157,3 +157,15 @@ void RotationWindow::on_resetButton_clicked()
     }
 }
 
+
+void RotationWindow::on_playAllButton_clicked()
+{
+	for (int i=1; i<=sliderCount;i++) {
+		setShapeValue(i,100);
+		//attack(i);
+	}
+	QThread::msleep(100);
+	for (int i=1; i<=sliderCount;i++) {
+		attack(i);
+	}
+}
