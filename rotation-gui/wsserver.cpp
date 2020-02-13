@@ -37,11 +37,21 @@ int WsServer::getHarmonic(QString uuid)
     if (clientsHash.contains(uuid))
         harmonic = clientsHash[uuid];
     else {
-        harmonic = ++lastHarmonic;
-        if (harmonic<=maxHarmonic) // add only if it is not out of given slidercount
+		QList <int> harmonics = clientsHash.values();
+
+		for (int i=1; i<=maxHarmonic; i++) {
+			if (!harmonics.contains(i)) {
+				qDebug() << "missing harmonic founud: " << i;
+				harmonic = i;
+				break;
+			}
+		}
+		//harmonic = ++lastHarmonic;
+		if (harmonic>0 && harmonic<=maxHarmonic) { // add only if it is not out of given slidercount
             clientsHash.insert(uuid,harmonic);
+		}
     }
-    return (harmonic>maxHarmonic) ? -1 : harmonic; // return -1 if
+	return (harmonic>maxHarmonic || harmonic==0) ? -1 : harmonic; // return -1 if
 }
 
 
@@ -93,7 +103,7 @@ void WsServer::processTextMessage(QString message)
     }
 
 	if (message.startsWith("shape ")) { // comes as shape <no> <value>
-		qDebug()<<"Shape: "<<messageParts[1]<<" value: "<< messageParts[2];
+		//qDebug()<<"Shape: "<<messageParts[1]<<" value: "<< messageParts[2];
 		emit newShapeValue(messageParts[1].toInt(), int(messageParts[2].toFloat()*100)  );
 	}
 
@@ -120,6 +130,7 @@ void WsServer::socketDisconnected()
 {
     QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
     if (pClient) {
+		clientsHash.remove(pClient->peerAddress().toString()); // does it work?
         m_clients.removeAll(pClient);
         emit newConnection(m_clients.count());
         pClient->deleteLater();

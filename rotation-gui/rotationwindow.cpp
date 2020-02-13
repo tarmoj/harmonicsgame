@@ -56,7 +56,7 @@ RotationWindow::RotationWindow(int slidercount, QWidget *parent) :
 
 RotationWindow::~RotationWindow()
 {
-    delete ui;
+	delete ui;
 }
 
 void RotationWindow::setSliderValue(int slider, int value)
