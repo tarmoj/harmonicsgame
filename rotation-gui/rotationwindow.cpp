@@ -21,11 +21,11 @@ RotationWindow::RotationWindow(int slidercount, QWidget *parent) :
 
 	connect(csoundThread, &QThread::finished, cs, &CsEngine::deleteLater);
 	connect(csoundThread, &QThread::finished, csoundThread, &QThread::deleteLater); // somehow exiting from Csound is not clear yet, the thread gets destoyed when Csoun is still running.
-	connect(QApplication::instance(), &QApplication::aboutToQuit,cs,&CsEngine::stop ); // does not work here...
+	//connect(QApplication::instance(), &QApplication::aboutToQuit,cs,&CsEngine::stop ); // does not work here...
 
 	// kuskile funtsioonid startCsound, stopCsoundm thread private
 	// stopCsound -> connecct widget destoyed ja kuskil cs->stop(), csoundThread.quit(), csoundThread.wait()
-	//connect(this, &QWidget::destroyed, cs, &CsEngine::stop);
+	connect(this, &QWidget::destroyed, cs, &CsEngine::stop);
 	connect(csoundThread, &QThread::started, cs, &CsEngine::play);
 	csoundThread->start();
 
@@ -56,6 +56,9 @@ RotationWindow::RotationWindow(int slidercount, QWidget *parent) :
 
 RotationWindow::~RotationWindow()
 {
+	cs->stop();
+	csoundThread->quit();
+	csoundThread->wait();
 	delete ui;
 }
 
